@@ -9,7 +9,7 @@ EXAMPLE: https://www.youtube.com/watch?v=48p4yG9WWug
 
 Take 48p4yG9WWug and input it into the console while the script is running"""
 
-# d6d4af665caf551afe4689943f40c147 test api key
+# *Test-key-here* test api key
 api_key = input('Please enter your elevenlabs API Key: ')
 vid_id = input('\nPlease enter the video id for the yt stream: ')
 

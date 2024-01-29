@@ -25,8 +25,7 @@ while chat.is_alive():
         print(chance)
 
         if chance == 10:
-            cryptonic_voice \
-                = randint(1, 10)
+            cryptonic_voice = randint(1, 10)
             print(cryptonic_voice)
 
             if cryptonic_voice == 10:

@@ -1,7 +1,7 @@
-import ytmusicapi
 import tkinter
 import csv
 import json
+import ytmusicapi
 
 """
 Create a music recommender that takes the last 5-10 songs the user has listened to and takes the genre and mood
@@ -9,7 +9,7 @@ and gives an int value and increases the more often it appears in the listening 
 with the top 2-3 genres 
 
 How I think its going to work:
-- Take data from google takeout and filter by history of YT music
+- Take data from google takeout and filter by history of YT music ---- DONE
 - Run through the data and take the genre and and mood and allocate it a counting variable that increases each time it 
     it appears
 - Return a list of 5* songs that fit into the genres scraped
@@ -47,3 +47,17 @@ for x in history_links:
             comb_lst.append(j)
 
 print(comb_lst)
+
+
+class BrowsingMixin:
+    def __init__(self):
+
+        pass
+
+    def get_song(self):
+        ytmusicapi.YTMusic.get_song(self, videoId=comb_lst[0], signatureTimestamp=0)
+
+
+test = BrowsingMixin()
+
+test.get_song()

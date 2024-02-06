@@ -38,14 +38,12 @@ for i in links:
     else:
         break
 
-# Makes a combined list that filters out regular YT videos
-# *Need to make accurate with users history still*
-for x in yt_music_links:
-    for j in history_links:
+# Makes a combined list that filters out regular YT videos by recently listened to
+for x in history_links:
+    for j in yt_music_links:
         if j not in x:
             pass
         else:
             comb_lst.append(j)
 
 print(comb_lst)
-

@@ -14,30 +14,32 @@ How I think its going to work:
     it appears
 - Return a list of 5* songs that fit into the genres scraped
 """
+# Every list needed to make this work (I think)
 yt_music_links = []
+comb_lst = []
+history_links = []
 
+# Opens the music library and returns a list of strings
 with open('music-library-songs.csv', 'r', newline='', errors='ignore') as file:
     read_csv_file = csv.reader(file)
     for row in read_csv_file:
         yt_music_links.append(row[0])
-
 yt_music_links.pop(0)
 
-
-history_links = []
+# Opens and loads the .json file with the YT watch history
 history_json = open('watch-history.json', errors='ignore')
 
 links = json.load(history_json)
 
+# Puts all the YT links into a list
 for i in links:
     if 'titleUrl' in i:
         history_links.append(i['titleUrl'])
     else:
         break
 
-comb_lst = []
-
-
+# Makes a combined list that filters out regular YT videos
+# *Need to make accurate with users history still*
 for x in yt_music_links:
     for j in history_links:
         if j not in x:

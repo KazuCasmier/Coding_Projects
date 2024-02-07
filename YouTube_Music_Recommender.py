@@ -51,11 +51,10 @@ print(comb_lst)
 
 class BrowsingMixin:
     def __init__(self):
-
-        pass
+        ytmusicapi.setup(filepath='headers.json', headers_raw='header.json')
 
     def get_song(self):
-        ytmusicapi.YTMusic.get_song(self, videoId=comb_lst[0], signatureTimestamp=0)
+        print(ytmusicapi.YTMusic.get_song(self, videoId=comb_lst[0], signatureTimestamp=0))
 
 
 test = BrowsingMixin()

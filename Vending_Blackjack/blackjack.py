@@ -62,7 +62,7 @@ class Blackjack:
                 print(f'The dealer flips over the {d_hand[1][0]} of {d_hand[1][1]} and has blackjack you lose :(\n')
                 self.amount -= bet
                 input('press enter to continue\n')
-                return f'you lost ${bet}'
+                return self.amount
 
             print(f'\nYour current count is: {p_count} and dealer has a {d_hand[0][0]}')
             user_i = int(input('Would you like to:\n[0] Hit\n[1] Stand\n\n---> '))

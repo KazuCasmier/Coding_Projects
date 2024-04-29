@@ -17,9 +17,6 @@ enemy_pos = {}
 player_pos = [0]
 
 """-Known_Bugs-
-
-        > Player can get OOB really easily and break the game
-            - Player can now *wrap* around the screen but will still break enemy AI
             
         > Some of the enemy spawn are still buggy and will not display movement correctly
             - Maybe not bugged entirely, pretty sure it has something to do with the try and except statements
@@ -209,12 +206,15 @@ def game_start():
     def up():
         if not in_combat:
             labels[player_pos[0]][player_pos[1]].config(bg='White')
-            y = player_pos[1]
-            y -= 1
-            player_pos[1] = y
             try:
+                y = player_pos[1]
+                y -= 1
+                player_pos[1] = y
+                if y < 0:
+                    raise IndexError
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
             except IndexError:
+                y = player_pos[1]
                 y += 1
                 player_pos[1] = y
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
@@ -231,12 +231,15 @@ def game_start():
     def down():
         if not in_combat:
             labels[player_pos[0]][player_pos[1]].config(bg='White')
-            y = player_pos[1]
-            y += 1
-            player_pos[1] = y
             try:
+                y = player_pos[1]
+                y += 1
+                player_pos[1] = y
+                if y > 4:
+                    raise IndexError
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
             except IndexError:
+                y = player_pos[1]
                 y -= 1
                 player_pos[1] = y
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
@@ -253,12 +256,15 @@ def game_start():
     def right():
         if not in_combat:
             labels[player_pos[0]][player_pos[1]].config(bg='White')
-            x = player_pos[0]
-            x += 1
-            player_pos[0] = x
             try:
+                x = player_pos[0]
+                x += 1
+                player_pos[0] = x
+                if x > 4:
+                    raise IndexError
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
-            except IndexError:
+            except IndexError or player_pos[0] > 4:
+                x = player_pos[0]
                 x -= 1
                 player_pos[0] = x
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
@@ -275,12 +281,15 @@ def game_start():
     def left():
         if not in_combat:
             labels[player_pos[0]][player_pos[1]].config(bg='White')
-            x = player_pos[0]
-            x -= 1
-            player_pos[0] = x
             try:
+                x = player_pos[0]
+                x -= 1
+                player_pos[0] = x
+                if x < 0:
+                    raise IndexError
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
-            except IndexError:
+            except IndexError or player_pos[0] < 0:
+                x = player_pos[0]
                 x += 1
                 player_pos[0] = x
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')

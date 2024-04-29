@@ -12,13 +12,29 @@ text_frame_bg = '#7F2CCB'
 button_bg = '#B880F7'
 font = 'Arial'
 
+in_combat = False
+enemy_pos = {}
+player_pos = [0]
+
 """-Known_Bugs-
 
-    > Player can get OOB really easily and break the game
-        - Player can now *wrap* around the screen but will still break enemy AI
+        > Player can get OOB really easily and break the game
+            - Player can now *wrap* around the screen but will still break enemy AI
+            
+        > Some of the enemy spawn are still buggy and will not display movement correctly
+            - Maybe not bugged entirely, pretty sure it has something to do with the try and except statements
+            
+        > Clearing the top right info frame is not working right now, will fix soon.
         
-    > Some of the enemy spawn are still buggy and will not display movement correctly
-        - Maybe not bugged entirely, pretty sure it has something to do with the try and except statements
+    -In_Development-
+    
+        > Combat system
+    
+        > Working health bar/actions on bottom left frame
+        
+        > Refreshing the floor after reaching the exit
+        
+        > Some sort of API implementation into the combat system
     
 """
 
@@ -37,8 +53,6 @@ def game_start():
     t_l_frame = tk.Frame(dungeon_floor, width=600, height=500, background=text_frame_bg)
     t_l_frame.grid(row=0, column=0, padx=5, pady=5)
 
-    enemy_pos = {}
-    player_pos = [0]
 
     """Creates the floor grid using a for loop and list comprehension
   - Nabbed some of this code from Chat GPT because I was pulling my hair out trying to make a modular grid"""
@@ -137,15 +151,41 @@ def game_start():
                                                     "\n\n  The red squares are enemies, run or fight do with them as you please.",
                     font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                     fg="Light Gray")
-    text.grid(row=0, column=0)
+    text.pack()
+    t_r_frame.propagate(False)
 
     """The combat method... more later"""
     def combat():
-        text_2 = tk.Label(t_r_frame, wraplength=200, text='combat',
+        global in_combat
+        in_combat = True
+        turn_order = randint(1, 2)
+        text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou are in combat!!',
                           font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                           fg="Light Gray")
-        text_2.grid(row=1, column=0)
-    t_r_frame.propagate(False)
+        text_2.pack()
+        # Turn order: 1 = enemy goes first, 2 = Player goes first
+        if turn_order == 1:
+            pass
+
+        elif turn_order == 2:
+            pass
+
+    def run():
+        global in_combat
+        run_chance = randint(1, 3)
+        print(run_chance)
+        if run_chance == 1:
+            in_combat = False
+            text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou are out of combat!!',
+                              font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                              fg="Light Gray")
+            text_2.pack()
+
+        else:
+            text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou fail to run and are still in combat!!',
+                              font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                              fg="Light Gray")
+            text_2.pack()
 
     """List of player actions. At the moment I don't really like this but it works for now"""
     b_l_frame = tk.Frame(dungeon_floor, width=600, height=200, border=10, background=text_frame_bg)
@@ -157,7 +197,7 @@ def game_start():
 
     attack_btn = (tk.Button(b_l_frame, text='ATTACK', bg=button_bg)
                   .grid(row=0, column=1, padx=25, pady=5))
-    run_btn = (tk.Button(b_l_frame, text='RUN', bg=button_bg)
+    run_btn = (tk.Button(b_l_frame, text='RUN', bg=button_bg, command=run)
                .grid(row=1, column=1, padx=25, pady=5, ipadx=10))
     open_btn = (tk.Button(b_l_frame, text='OPEN', command='', bg=button_bg)
                 .grid(row=0, column=2, padx=15, pady=5))
@@ -167,68 +207,92 @@ def game_start():
     """These methods are the movement actions for the Player"""
 
     def up():
-        labels[player_pos[0]][player_pos[1]].config(bg='White')
-        y = player_pos[1]
-        y -= 1
-        player_pos[1] = y
-        try:
-            labels[player_pos[0]][player_pos[1]].config(bg='Blue')
-        except IndexError:
-            y += 1
-            player_pos[1] = y
-            labels[player_pos[0]][player_pos[1]].config(bg='Blue')
-        for enemy in range(2):
-            if player_pos == enemy_pos[enemy]:
-                combat()
-        enemy_movement()
-
-    def down():
-        labels[player_pos[0]][player_pos[1]].config(bg='White')
-        y = player_pos[1]
-        y += 1
-        player_pos[1] = y
-        try:
-            labels[player_pos[0]][player_pos[1]].config(bg='Blue')
-        except IndexError:
+        if not in_combat:
+            labels[player_pos[0]][player_pos[1]].config(bg='White')
+            y = player_pos[1]
             y -= 1
             player_pos[1] = y
-            labels[player_pos[0]][player_pos[1]].config(bg='Blue')
-        for enemy in range(2):
-            if player_pos == enemy_pos[enemy]:
-                combat()
-        enemy_movement()
+            try:
+                labels[player_pos[0]][player_pos[1]].config(bg='Blue')
+            except IndexError:
+                y += 1
+                player_pos[1] = y
+                labels[player_pos[0]][player_pos[1]].config(bg='Blue')
+            for enemy in range(2):
+                if player_pos == enemy_pos[enemy]:
+                    combat()
+            enemy_movement()
+        else:
+            text_3 = tk.Label(t_r_frame, wraplength=200, text='You cannot move, you are in combat',
+                              font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                              fg="Light Gray")
+            text_3.pack()
+
+    def down():
+        if not in_combat:
+            labels[player_pos[0]][player_pos[1]].config(bg='White')
+            y = player_pos[1]
+            y += 1
+            player_pos[1] = y
+            try:
+                labels[player_pos[0]][player_pos[1]].config(bg='Blue')
+            except IndexError:
+                y -= 1
+                player_pos[1] = y
+                labels[player_pos[0]][player_pos[1]].config(bg='Blue')
+            for enemy in range(2):
+                if player_pos == enemy_pos[enemy]:
+                    combat()
+            enemy_movement()
+        else:
+            text_3 = tk.Label(t_r_frame, wraplength=200, text='You cannot move, you are in combat',
+                              font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                              fg="Light Gray")
+            text_3.pack()
 
     def right():
-        labels[player_pos[0]][player_pos[1]].config(bg='White')
-        x = player_pos[0]
-        x += 1
-        player_pos[0] = x
-        try:
-            labels[player_pos[0]][player_pos[1]].config(bg='Blue')
-        except IndexError:
-            x -= 1
-            player_pos[0] = x
-            labels[player_pos[0]][player_pos[1]].config(bg='Blue')
-        for enemy in range(2):
-            if player_pos == enemy_pos[enemy]:
-                combat()
-        enemy_movement()
-
-    def left():
-        labels[player_pos[0]][player_pos[1]].config(bg='White')
-        x = player_pos[0]
-        x -= 1
-        player_pos[0] = x
-        try:
-            labels[player_pos[0]][player_pos[1]].config(bg='Blue')
-        except IndexError:
+        if not in_combat:
+            labels[player_pos[0]][player_pos[1]].config(bg='White')
+            x = player_pos[0]
             x += 1
             player_pos[0] = x
-            labels[player_pos[0]][player_pos[1]].config(bg='Blue')
-        for enemy in range(2):
-            if player_pos == enemy_pos[enemy]:
-                combat()
-        enemy_movement()
+            try:
+                labels[player_pos[0]][player_pos[1]].config(bg='Blue')
+            except IndexError:
+                x -= 1
+                player_pos[0] = x
+                labels[player_pos[0]][player_pos[1]].config(bg='Blue')
+            for enemy in range(2):
+                if player_pos == enemy_pos[enemy]:
+                    combat()
+            enemy_movement()
+        else:
+            text_3 = tk.Label(t_r_frame, wraplength=200, text='You cannot move, you are in combat',
+                              font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                              fg="Light Gray")
+            text_3.pack()
+
+    def left():
+        if not in_combat:
+            labels[player_pos[0]][player_pos[1]].config(bg='White')
+            x = player_pos[0]
+            x -= 1
+            player_pos[0] = x
+            try:
+                labels[player_pos[0]][player_pos[1]].config(bg='Blue')
+            except IndexError:
+                x += 1
+                player_pos[0] = x
+                labels[player_pos[0]][player_pos[1]].config(bg='Blue')
+            for enemy in range(2):
+                if player_pos == enemy_pos[enemy]:
+                    combat()
+            enemy_movement()
+        else:
+            text_3 = tk.Label(t_r_frame, wraplength=200, text='You cannot move, you are in combat',
+                              font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                              fg="Light Gray")
+            text_3.pack()
 
     b_r_frame = tk.Frame(dungeon_floor, width=200, height=200, border=10, background=input_frame_bg)
     b_r_frame.grid(row=1, column=1, padx=5, pady=5)

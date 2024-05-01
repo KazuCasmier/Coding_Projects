@@ -18,7 +18,9 @@ in_combat = False
             
         > Whenever an enemy occupies a space previously occupied by another enemy there is a chance they will disappear
           becoming white and will reappear after the player moves
-            
+            - If the player purposefully runs into an enemy sometime the cell where the player is in combat will be white
+            and the enemy will be one cell away
+        
         > Clearing the top right info frame is not working right now, will fix soon.
         
     -In_Development-
@@ -54,7 +56,6 @@ def game_start():
     dungeon_floor.configure(background=window_bg, cursor='dot')
     dungeon_floor.title('Dungeon Crawler')
     dungeon_floor.geometry('820x720')
-
 
     enemy_pos = {}
     player_pos = [0]
@@ -161,9 +162,50 @@ def game_start():
 
     """The combat method... more later"""
 
+    b_l_frame = tk.Frame(dungeon_floor, width=600, height=200, border=10, background=input_frame_bg)
+    b_l_frame.grid(row=1, column=0, padx=5, pady=5)
+
+    # HEALTH SLIDER!!!
+    player_hp = 99.9
+    hp_slider = ttk.Progressbar(b_l_frame, orient=tk.HORIZONTAL, length=400)
+    hp_slider.grid(column=0, row=0, rowspan=1, ipady=5)
+    hp_slider.step(player_hp)
+
+    def run():
+        global in_combat
+        count = 0
+        count += 1
+        run_chance = randint(1, 3)
+        print(run_chance)
+        if not in_combat:
+            text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou are not in combat, you cannot run.',
+                              font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                              fg="Light Gray")
+            text_2.pack()
+        else:
+            if run_chance == 1:
+                in_combat = False
+                for widget in t_r_frame.winfo_children():
+                    widget.destroy()
+                text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou are out of combat!!',
+                                  font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                                  fg="Light Gray")
+                text_2.pack()
+
+            else:
+                text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou fail to run and are still in combat!!',
+                                  font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                                  fg="Light Gray")
+                text_2.pack()
+        if count >= 5:
+            for widget in t_r_frame.winfo_children():
+                widget.destroy()
+
     def combat():
+        global player_hp
         global in_combat
         in_combat = True
+        player_turn = False
         turn_order = randint(1, 2)
         labels[player_pos[0]][player_pos[1]].config(bg='teal')
         text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou are in combat!!',
@@ -172,52 +214,42 @@ def game_start():
         text_2.pack()
         # Turn order: 1 = enemy goes first, 2 = Player goes first
         if turn_order == 1:
-            pass
-
+            hit_chance = randint(1, 7)
+            if hit_chance >= 5:
+                dmg = randint(7, 15)
+                player_hp -= dmg
         elif turn_order == 2:
-            pass
-
-    def run():
-        global in_combat
-        run_chance = randint(1, 3)
-        print(run_chance)
-        if run_chance == 1:
-            in_combat = False
-            # t_r_frame.winfo_children()
-            text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou are out of combat!!',
+            player_turn = True
+            text_2 = tk.Label(t_r_frame, wraplength=200, text='\n-It is your turn in combat-',
                               font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                               fg="Light Gray")
             text_2.pack()
 
-        else:
-            text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou fail to run and are still in combat!!',
-                              font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
-                              fg="Light Gray")
-            text_2.pack()
+    def attack():
+        pass
 
     """List of player actions. At the moment I don't really like this but it works for now"""
-    b_l_frame = tk.Frame(dungeon_floor, width=600, height=200, border=10, background=text_frame_bg)
-    b_l_frame.grid(row=1, column=0, padx=5, pady=5)
 
-    # HEALTH SLIDER!!!
-    player_hp = 100
-    hp_slider = (ttk.Progressbar(b_l_frame, orient=tk.HORIZONTAL, length=400, mode="determinate")
-                 .grid(column=0, row=0, rowspan=2, ipady=5))
-    hp_text = (tk.Label(b_l_frame, text=f'100/{player_hp}', font=font, bg=text_frame_bg)
-               .grid(column=0, row=1))
+    hp_text = tk.Label(b_l_frame, text=f'HP: 100/{player_hp}', font=font, bg=button_bg)
+    hp_text.grid(column=0, row=1)
 
-    attack_btn = (tk.Button(b_l_frame, text='ATTACK', bg=button_bg)
-                  .grid(row=0, column=1, padx=25, pady=5))
-    run_btn = (tk.Button(b_l_frame, text='RUN', bg=button_bg, command=run)
-               .grid(row=1, column=1, padx=25, pady=5, ipadx=10))
-    open_btn = (tk.Button(b_l_frame, text='OPEN', command='', bg=button_bg)
-                .grid(row=0, column=2, padx=15, pady=5))
-    quit_btn = (tk.Button(b_l_frame, text='QUIT', bg=button_bg, command=quit_game)
-                .grid(row=1, column=2, padx=15, pady=5))
+    attack_btn = tk.Button(b_l_frame, text='ATTACK', bg=button_bg, command=attack)
+    attack_btn.grid(row=0, column=1, padx=25, pady=5)
+
+    run_btn = tk.Button(b_l_frame, text='RUN', bg=button_bg, command=run)
+    run_btn.grid(row=1, column=1, padx=25, pady=5, ipadx=10)
+
+    open_btn = tk.Button(b_l_frame, text='OPEN', command='', bg=button_bg)
+    open_btn.grid(row=0, column=2, padx=15, pady=5)
+
+    quit_btn = tk.Button(b_l_frame, text='QUIT', bg=button_bg, command=quit_game)
+    quit_btn.grid(row=1, column=2, padx=15, pady=5)
+
 
     """These methods are the movement actions for the Player"""
 
     def up():
+        global in_combat
         if not in_combat:
             labels[player_pos[0]][player_pos[1]].config(bg='White')
             try:
@@ -235,6 +267,8 @@ def game_start():
             for enemy in range(len(enemy_pos)):
                 if player_pos == enemy_pos[enemy]:
                     combat()
+                    in_combat = True
+                    break
             enemy_movement()
 
         else:
@@ -244,6 +278,7 @@ def game_start():
             text_3.pack()
 
     def down():
+        global in_combat
         if not in_combat:
             labels[player_pos[0]][player_pos[1]].config(bg='White')
             try:
@@ -264,6 +299,8 @@ def game_start():
             for enemy in range(len(enemy_pos)):
                 if player_pos == enemy_pos[enemy]:
                     combat()
+                    in_combat = True
+                    break
             enemy_movement()
 
         else:
@@ -273,6 +310,7 @@ def game_start():
             text_3.pack()
 
     def right():
+        global in_combat
         if not in_combat:
             labels[player_pos[0]][player_pos[1]].config(bg='White')
             try:
@@ -293,6 +331,8 @@ def game_start():
             for enemy in range(len(enemy_pos)):
                 if player_pos == enemy_pos[enemy]:
                     combat()
+                    in_combat = True
+                    break
             enemy_movement()
         else:
             text_3 = tk.Label(t_r_frame, wraplength=200, text='You cannot move, you are in combat',
@@ -301,6 +341,7 @@ def game_start():
             text_3.pack()
 
     def left():
+        global in_combat
         if not in_combat:
             labels[player_pos[0]][player_pos[1]].config(bg='White')
             try:
@@ -318,6 +359,8 @@ def game_start():
             for enemy in range(len(enemy_pos)):
                 if player_pos == enemy_pos[enemy]:
                     combat()
+                    in_combat = True
+                    break
             enemy_movement()
         else:
             text_3 = tk.Label(t_r_frame, wraplength=200, text='You cannot move, you are in combat',

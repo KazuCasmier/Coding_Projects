@@ -13,6 +13,8 @@ button_bg = '#B880F7'
 font = 'Arial'
 
 in_combat = False
+player_turn = True
+player_hp = 99
 
 """-Known_Bugs-
             
@@ -28,7 +30,7 @@ in_combat = False
         > Combat system
             X Show the player is in combat
             X Run system
-            ~ Show if the enemies are overlapping
+            X Show if the enemies are overlapping
             - Player/Enemy health
             - Player/Enemy Attack
             
@@ -52,6 +54,7 @@ def destroy_window():
 
 
 def game_start():
+    global player_hp
     dungeon_floor = tk.Tk()
     dungeon_floor.configure(background=window_bg, cursor='dot')
     dungeon_floor.title('Dungeon Crawler')
@@ -106,51 +109,54 @@ def game_start():
 
     def enemy_movement():
         print(f'Before: {enemy_pos}')
-        for x in range(len(enemy_pos)):
-            if player_pos == enemy_pos[0] or player_pos == enemy_pos[1]:
-                combat()
-            print(x)
-            direction = randint(0, 1)
-            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
-            # Direction 0 = x, 1 = y
-            if direction == 0:
-                if player_pos[0] >= enemy_pos[x][0]:
-                    labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
-                    enemy_pos[x][0] += 1
-                    try:
-                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                    except IndexError:
-                        enemy_pos[x][0] -= 1
-                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                elif player_pos[0] < enemy_pos[x][0]:
-                    labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
-                    enemy_pos[x][0] -= 1
-                    try:
-                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                    except IndexError:
+        if in_combat:
+            start_turn_order()
+            combat()
+        else:
+            for x in range(len(enemy_pos)):
+                print(x)
+                direction = randint(0, 1)
+                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
+                # Direction 0 = x, 1 = y
+                if direction == 0:
+                    if player_pos[0] >= enemy_pos[x][0]:
+                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
                         enemy_pos[x][0] += 1
-                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-            elif direction == 1:
-                if player_pos[1] >= enemy_pos[x][1]:
-                    labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
-                    enemy_pos[x][1] += 1
-                    try:
-                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                    except IndexError:
-                        enemy_pos[x][1] -= 1
-                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                elif player_pos[1] < enemy_pos[x][1]:
-                    try:
-                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                    except IndexError:
+                        try:
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                        except IndexError:
+                            enemy_pos[x][0] -= 1
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                    elif player_pos[0] < enemy_pos[x][0]:
+                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
+                        enemy_pos[x][0] -= 1
+                        try:
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                        except IndexError:
+                            enemy_pos[x][0] += 1
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                elif direction == 1:
+                    if player_pos[1] >= enemy_pos[x][1]:
+                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
                         enemy_pos[x][1] += 1
-                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-        for enemy in range(len(enemy_pos)):
-            if player_pos == enemy_pos[enemy]:
-                combat()
-        if enemy_pos[1] == enemy_pos[0]:
-            labels[enemy_pos[0][0]][enemy_pos[0][1]].config(bg='Dark Red')
-            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Dark Red')
+                        try:
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                        except IndexError:
+                            enemy_pos[x][1] -= 1
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                    elif player_pos[1] < enemy_pos[x][1]:
+                        try:
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                        except IndexError:
+                            enemy_pos[x][1] += 1
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+            for enemy in range(len(enemy_pos)):
+                if player_pos == enemy_pos[enemy]:
+                    start_turn_order()
+                    combat()
+            if enemy_pos[1] == enemy_pos[0]:
+                labels[enemy_pos[0][0]][enemy_pos[0][1]].config(bg='Dark Red')
+                labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Dark Red')
 
     def quit_game():
         quit()
@@ -166,12 +172,12 @@ def game_start():
     b_l_frame.grid(row=1, column=0, padx=5, pady=5)
 
     # HEALTH SLIDER!!!
-    player_hp = 99.9
     hp_slider = ttk.Progressbar(b_l_frame, orient=tk.HORIZONTAL, length=400)
     hp_slider.grid(column=0, row=0, rowspan=1, ipady=5)
     hp_slider.step(player_hp)
 
     def run():
+        global player_turn
         global in_combat
         count = 0
         count += 1
@@ -197,41 +203,84 @@ def game_start():
                                   font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                   fg="Light Gray")
                 text_2.pack()
+                player_turn = False
+                combat()
         if count >= 5:
             for widget in t_r_frame.winfo_children():
                 widget.destroy()
 
+    def attack():
+        global player_turn
+        if in_combat:
+            pass
+        elif not in_combat:
+            text_non = tk.Label(t_r_frame, wraplength=200, text='\nYou are not in combat, you cannot attack.',
+                                font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                                fg="Light Gray")
+            text_non.pack()
+        player_turn = False
+
+    def start_turn_order():
+        global player_turn
+        turn_order = randint(1, 2)
+
+        if turn_order == 1:
+            player_turn = False
+        elif turn_order == 2:
+            player_turn = True
+
     def combat():
         global player_hp
+        global player_turn
         global in_combat
         in_combat = True
-        player_turn = False
-        turn_order = randint(1, 2)
+
         labels[player_pos[0]][player_pos[1]].config(bg='teal')
         text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou are in combat!!',
                           font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                           fg="Light Gray")
         text_2.pack()
+
         # Turn order: 1 = enemy goes first, 2 = Player goes first
-        if turn_order == 1:
+        if not player_turn:
             hit_chance = randint(1, 7)
             if hit_chance >= 5:
+                print("hit")
                 dmg = randint(7, 15)
                 player_hp -= dmg
-        elif turn_order == 2:
-            player_turn = True
+                if player_hp == 0:
+                    dungeon_floor.destroy()
+                    main_menu()
+                text_hit = tk.Label(t_r_frame, wraplength=200,
+                                    text=f'\n-It is the enemies turn and they delt {dmg} damage.-',
+                                    font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                                    fg="Light Gray")
+                update_health()
+                text_hit.pack()
+                player_turn = True
+            else:
+                text_miss = tk.Label(t_r_frame, wraplength=200,
+                                     text=f'\n-The enemy missed its attack!-',
+                                     font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                                     fg="Light Gray")
+                text_miss.pack()
+                player_turn = True
+        elif player_turn:
             text_2 = tk.Label(t_r_frame, wraplength=200, text='\n-It is your turn in combat-',
                               font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                               fg="Light Gray")
             text_2.pack()
-
-    def attack():
-        pass
+            attack()
 
     """List of player actions. At the moment I don't really like this but it works for now"""
 
-    hp_text = tk.Label(b_l_frame, text=f'HP: 100/{player_hp}', font=font, bg=button_bg)
+    hp_text = tk.Label(b_l_frame, text=f'HP: 99/{player_hp}', font=font, bg=button_bg)
     hp_text.grid(column=0, row=1)
+
+    def update_health():
+        hp_text = tk.Label(b_l_frame, text=f'HP: 99/{player_hp}', font=font, bg=button_bg)
+        hp_slider.step(player_hp)
+        hp_text.grid(column=0, row=1)
 
     attack_btn = tk.Button(b_l_frame, text='ATTACK', bg=button_bg, command=attack)
     attack_btn.grid(row=0, column=1, padx=25, pady=5)
@@ -244,7 +293,6 @@ def game_start():
 
     quit_btn = tk.Button(b_l_frame, text='QUIT', bg=button_bg, command=quit_game)
     quit_btn.grid(row=1, column=2, padx=15, pady=5)
-
 
     """These methods are the movement actions for the Player"""
 
@@ -266,9 +314,7 @@ def game_start():
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
             for enemy in range(len(enemy_pos)):
                 if player_pos == enemy_pos[enemy]:
-                    combat()
                     in_combat = True
-                    break
             enemy_movement()
 
         else:
@@ -298,7 +344,6 @@ def game_start():
                 game_start()
             for enemy in range(len(enemy_pos)):
                 if player_pos == enemy_pos[enemy]:
-                    combat()
                     in_combat = True
                     break
             enemy_movement()
@@ -330,7 +375,6 @@ def game_start():
                 game_start()
             for enemy in range(len(enemy_pos)):
                 if player_pos == enemy_pos[enemy]:
-                    combat()
                     in_combat = True
                     break
             enemy_movement()
@@ -358,7 +402,6 @@ def game_start():
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
             for enemy in range(len(enemy_pos)):
                 if player_pos == enemy_pos[enemy]:
-                    combat()
                     in_combat = True
                     break
             enemy_movement()
@@ -383,29 +426,34 @@ def game_start():
 
 """Sets up the main menu screen"""
 
+
+def main_menu():
+    window.configure(background=window_bg, cursor='dot')
+    window.title('Dungeon Crawler')
+    window.geometry('700x600')
+    title = tk.Label(window, text="Dungeon Crawler!!!", font=(font, 28, "bold"), pady=20, bg=input_frame_bg,
+                     fg="Light Gray")
+    start_button = tk.Button(window, text="Start", command=destroy_window, bg=button_bg, fg='Black', pady=20, width=100,
+                             font=font)
+    settings_button = tk.Button(window, text="Settings", command=settings, bg=button_bg, fg='Black', pady=20, width=100,
+                                font=font)
+
+    text = tk.Label(window, wraplength=700, text="Use the on screen arrow keys to move."
+                                                 "\n\n -Your goal is the black square in the bottom right"
+                                                 "\n\n -There will be one \"chest\" that also randomly spawns"
+                                                 "\n\n -The red squares are enemies, run or fight do with them as you please.",
+                    font=(font, 15, "bold"), pady=20, bg=input_frame_bg,
+                    fg="Light Gray")
+
+    exit_button = tk.Button(window, text="Exit", bg=button_bg, fg='Black', command=exit, font=font)
+    title.pack(fill='x')
+    start_button.pack(pady=20)
+    settings_button.pack(pady=5)
+    text.pack(fill='x')
+    exit_button.pack(side='bottom', fill='x', ipady=15)
+
+    window.mainloop()
+
+
 window = tk.Tk()
-window.configure(background=window_bg, cursor='dot')
-window.title('Dungeon Crawler')
-window.geometry('700x600')
-title = tk.Label(window, text="Dungeon Crawler!!!", font=(font, 28, "bold"), pady=20, bg=input_frame_bg,
-                 fg="Light Gray")
-start_button = tk.Button(window, text="Start", command=destroy_window, bg=button_bg, fg='Black', pady=20, width=100,
-                         font=font)
-settings_button = tk.Button(window, text="Settings", command=settings, bg=button_bg, fg='Black', pady=20, width=100,
-                            font=font)
-
-text = tk.Label(window, wraplength=700, text="Use the on screen arrow keys to move."
-                                             "\n\n -Your goal is the black square in the bottom right"
-                                             "\n\n -There will be one \"chest\" that also randomly spawns"
-                                             "\n\n -The red squares are enemies, run or fight do with them as you please.",
-                font=(font, 15, "bold"), pady=20, bg=input_frame_bg,
-                fg="Light Gray")
-
-exit_button = tk.Button(window, text="Exit", bg=button_bg, fg='Black', command=exit, font=font)
-title.pack(fill='x')
-start_button.pack(pady=20)
-settings_button.pack(pady=5)
-text.pack(fill='x')
-exit_button.pack(side='bottom', fill='x', ipady=15)
-
-window.mainloop()
+main_menu()

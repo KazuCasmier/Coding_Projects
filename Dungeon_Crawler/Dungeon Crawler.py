@@ -15,6 +15,7 @@ font = 'Arial'
 in_combat = False
 player_turn = True
 player_hp = 99
+enemy_hp = 20
 
 """-Known_Bugs-
             
@@ -24,22 +25,27 @@ player_hp = 99
             and the enemy will be one cell away
         
         > Clearing the top right info frame is not working right now, will fix soon.
+            - works but is ugly
+        
+        > HP slider is accepting enemy_hp and updating the slider with its value
         
     -In_Development-
     
-        > Combat system
+        > Combat system --COMPLETE BUT BUGGY--
             X Show the player is in combat
             X Run system
             X Show if the enemies are overlapping
-            - Player/Enemy health
-            - Player/Enemy Attack
+            X Player/Enemy health
+            X Player/Enemy Attack
             
         > Working health bar/actions on bottom left frame
+            - Open button has no function yet
         
-        > Refreshing the floor after reaching the exit
-            ~ Works but should be implemented on further
+        > Refreshing the floor after reaching the exit --COMPLETE--
+            X Works but should be implemented on further
         
         > Some sort of API implementation into the combat system
+            - Looking for a suitable api
     
 """
 
@@ -111,52 +117,92 @@ def game_start():
         print(f'Before: {enemy_pos}')
         if in_combat:
             start_turn_order()
-            combat()
         else:
-            for x in range(len(enemy_pos)):
-                print(x)
+            try:
+                for x in range(len(enemy_pos)):
+                    print(x)
+                    direction = randint(0, 1)
+                    labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
+                    # Direction 0 = x, 1 = y
+                    if direction == 0:
+                        if player_pos[0] >= enemy_pos[x][0]:
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
+                            enemy_pos[x][0] += 1
+                            try:
+                                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                            except IndexError:
+                                enemy_pos[x][0] -= 1
+                                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                        elif player_pos[0] < enemy_pos[x][0]:
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
+                            enemy_pos[x][0] -= 1
+                            try:
+                                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                            except IndexError:
+                                enemy_pos[x][0] += 1
+                                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                    elif direction == 1:
+                        if player_pos[1] >= enemy_pos[x][1]:
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
+                            enemy_pos[x][1] += 1
+                            try:
+                                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                            except IndexError:
+                                enemy_pos[x][1] -= 1
+                                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                        elif player_pos[1] < enemy_pos[x][1]:
+                            try:
+                                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                            except IndexError:
+                                enemy_pos[x][1] += 1
+                                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                for enemy in range(len(enemy_pos)):
+                    if player_pos == enemy_pos[enemy]:
+                        start_turn_order()
+            except KeyError:
                 direction = randint(0, 1)
-                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
+                labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='White')
                 # Direction 0 = x, 1 = y
                 if direction == 0:
-                    if player_pos[0] >= enemy_pos[x][0]:
-                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
-                        enemy_pos[x][0] += 1
+                    if player_pos[0] >= enemy_pos[1][0]:
+                        labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='White')
+                        enemy_pos[1][0] += 1
                         try:
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Red')
                         except IndexError:
-                            enemy_pos[x][0] -= 1
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                    elif player_pos[0] < enemy_pos[x][0]:
-                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
-                        enemy_pos[x][0] -= 1
+                            enemy_pos[1][0] -= 1
+                            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Red')
+                    elif player_pos[0] < enemy_pos[1][0]:
+                        labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='White')
+                        enemy_pos[1][0] -= 1
                         try:
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Red')
                         except IndexError:
-                            enemy_pos[x][0] += 1
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                            enemy_pos[1][0] += 1
+                            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Red')
                 elif direction == 1:
-                    if player_pos[1] >= enemy_pos[x][1]:
-                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
-                        enemy_pos[x][1] += 1
+                    if player_pos[1] >= enemy_pos[1][1]:
+                        labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='White')
+                        enemy_pos[1][1] += 1
                         try:
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Red')
                         except IndexError:
-                            enemy_pos[x][1] -= 1
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                    elif player_pos[1] < enemy_pos[x][1]:
+                            enemy_pos[1][1] -= 1
+                            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Red')
+                    elif player_pos[1] < enemy_pos[1][1]:
                         try:
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Red')
                         except IndexError:
-                            enemy_pos[x][1] += 1
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-            for enemy in range(len(enemy_pos)):
-                if player_pos == enemy_pos[enemy]:
-                    start_turn_order()
-                    combat()
-            if enemy_pos[1] == enemy_pos[0]:
-                labels[enemy_pos[0][0]][enemy_pos[0][1]].config(bg='Dark Red')
-                labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Dark Red')
+                            enemy_pos[1][1] += 1
+                            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Red')
+            if player_pos == enemy_pos[1]:
+                start_turn_order()
+            try:
+                if enemy_pos[1] == enemy_pos[0]:
+                    labels[enemy_pos[0][0]][enemy_pos[0][1]].config(bg='Dark Red')
+                    labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Dark Red')
+            except KeyError:
+                pass
 
     def quit_game():
         quit()
@@ -188,52 +234,82 @@ def game_start():
                               font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                               fg="Light Gray")
             text_2.pack()
-        else:
+        elif in_combat:
             if run_chance == 1:
-                in_combat = False
                 for widget in t_r_frame.winfo_children():
                     widget.destroy()
                 text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou are out of combat!!',
                                   font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                   fg="Light Gray")
                 text_2.pack()
-
+                in_combat = False
             else:
                 text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou fail to run and are still in combat!!',
                                   font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                   fg="Light Gray")
                 text_2.pack()
                 player_turn = False
-                combat()
-        if count >= 5:
-            for widget in t_r_frame.winfo_children():
-                widget.destroy()
+                enemy_combat()
+        player_turn = False
 
     def attack():
         global player_turn
-        if in_combat:
-            pass
-        elif not in_combat:
+        global enemy_hp
+        global in_combat
+
+        if not in_combat:
             text_non = tk.Label(t_r_frame, wraplength=200, text='\nYou are not in combat, you cannot attack.',
                                 font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                 fg="Light Gray")
             text_non.pack()
-        player_turn = False
+        elif in_combat:
+            hit_chance = randint(1, 6)
+            if hit_chance > 3:
+                player_dmg = randint(7, 15)
+                enemy_hp -= player_dmg
+                if enemy_hp <= 0:
+                    print(enemy_pos)
+                    for widget in t_r_frame.winfo_children():
+                        widget.destroy()
+                    for enemy in range(len(enemy_pos)):
+                        if player_pos == enemy_pos[enemy]:
+                            del enemy_pos[enemy]
+                    if enemy_pos[1] == 0:
+                        enemy_pos[1] = enemy_pos[0]
+                    print(enemy_pos)
+
+                    in_combat = False
+                    text_beat = tk.Label(t_r_frame, wraplength=200, text='\nYou beat the enemy! you are out of combat.',
+                                         font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                                         fg="Light Gray")
+                    text_beat.pack()
+                elif enemy_hp != 0:
+                    text_non = tk.Label(t_r_frame, wraplength=200, text=f'\nYou hit the enemy for {player_dmg} they '
+                                                                        f'have {enemy_hp} health remaining.',
+                                        font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                                        fg="Light Gray")
+                    text_non.pack()
+            else:
+                for widget in t_r_frame.winfo_children():
+                    widget.destroy()
+                text_miss = tk.Label(t_r_frame, wraplength=200, text=f'\nYou missed the enemy, it is their turn.',
+                                     font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                                     fg="Light Gray")
+                text_miss.pack()
+
+            player_turn = False
+            enemy_combat()
 
     def start_turn_order():
         global player_turn
-        turn_order = randint(1, 2)
-
-        if turn_order == 1:
-            player_turn = False
-        elif turn_order == 2:
-            player_turn = True
-
-    def combat():
-        global player_hp
-        global player_turn
+        global enemy_hp
         global in_combat
+        for widget in t_r_frame.winfo_children():
+            widget.destroy()
+
+        enemy_hp = 20
         in_combat = True
+        turn_order = randint(1, 2)
 
         labels[player_pos[0]][player_pos[1]].config(bg='teal')
         text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou are in combat!!',
@@ -241,45 +317,67 @@ def game_start():
                           fg="Light Gray")
         text_2.pack()
 
-        # Turn order: 1 = enemy goes first, 2 = Player goes first
+        if turn_order == 1:
+            player_turn = False
+        elif turn_order == 2:
+            player_turn = True
+        enemy_combat()
+
+    def enemy_combat():
+        global player_hp
+        global player_turn
+        global in_combat
+
         if not player_turn:
+            text_turn = tk.Label(t_r_frame, wraplength=200,
+                                 text=f'\n-Enemy Turn-',
+                                 font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                                 fg="Light Gray")
+            text_turn.pack()
             hit_chance = randint(1, 7)
             if hit_chance >= 5:
                 print("hit")
                 dmg = randint(7, 15)
                 player_hp -= dmg
-                if player_hp == 0:
-                    dungeon_floor.destroy()
-                    main_menu()
+
                 text_hit = tk.Label(t_r_frame, wraplength=200,
                                     text=f'\n-It is the enemies turn and they delt {dmg} damage.-',
                                     font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                     fg="Light Gray")
-                update_health()
+                if player_hp <= 0:
+                    main_menu()
+                    dungeon_floor.destroy()
+
                 text_hit.pack()
                 player_turn = True
+                update_health(player_hp)
+                text_2 = tk.Label(t_r_frame, wraplength=200, text='\n-It is now your turn.-',
+                                  font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                                  fg="Light Gray")
+                text_2.pack()
             else:
                 text_miss = tk.Label(t_r_frame, wraplength=200,
-                                     text=f'\n-The enemy missed its attack!-',
+                                     text=f'\n-The enemy missed its attack! It is your turn.-',
                                      font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                      fg="Light Gray")
                 text_miss.pack()
                 player_turn = True
         elif player_turn:
+            for widget in t_r_frame.winfo_children():
+                widget.destroy()
             text_2 = tk.Label(t_r_frame, wraplength=200, text='\n-It is your turn in combat-',
                               font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                               fg="Light Gray")
             text_2.pack()
-            attack()
 
     """List of player actions. At the moment I don't really like this but it works for now"""
 
     hp_text = tk.Label(b_l_frame, text=f'HP: 99/{player_hp}', font=font, bg=button_bg)
     hp_text.grid(column=0, row=1)
 
-    def update_health():
-        hp_text = tk.Label(b_l_frame, text=f'HP: 99/{player_hp}', font=font, bg=button_bg)
-        hp_slider.step(player_hp)
+    def update_health(hp):
+        hp_text = tk.Label(b_l_frame, text=f'HP: 99/{hp}', font=font, bg=button_bg)
+        hp_slider.step(hp)
         hp_text.grid(column=0, row=1)
 
     attack_btn = tk.Button(b_l_frame, text='ATTACK', bg=button_bg, command=attack)
@@ -312,8 +410,13 @@ def game_start():
                 y += 1
                 player_pos[1] = y
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
-            for enemy in range(len(enemy_pos)):
-                if player_pos == enemy_pos[enemy]:
+            try:
+                for enemy in range(len(enemy_pos)):
+                    if player_pos == enemy_pos[enemy]:
+                        in_combat = True
+                        break
+            except KeyError:
+                if player_pos == enemy_pos[1]:
                     in_combat = True
             enemy_movement()
 
@@ -339,15 +442,18 @@ def game_start():
                 y -= 1
                 player_pos[1] = y
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
+            try:
+                for enemy in range(len(enemy_pos)):
+                    if player_pos == enemy_pos[enemy]:
+                        in_combat = True
+                        break
+            except KeyError:
+                if player_pos == enemy_pos[1]:
+                    in_combat = True
             if player_pos == [4, 4]:
                 dungeon_floor.destroy()
                 game_start()
-            for enemy in range(len(enemy_pos)):
-                if player_pos == enemy_pos[enemy]:
-                    in_combat = True
-                    break
             enemy_movement()
-
         else:
             text_3 = tk.Label(t_r_frame, wraplength=200, text='You cannot move, you are in combat',
                               font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
@@ -370,13 +476,17 @@ def game_start():
                 x -= 1
                 player_pos[0] = x
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
+            try:
+                for enemy in range(len(enemy_pos)):
+                    if player_pos == enemy_pos[enemy]:
+                        in_combat = True
+                        break
+            except KeyError:
+                if player_pos == enemy_pos[1]:
+                    in_combat = True
             if player_pos == [4, 4]:
                 dungeon_floor.destroy()
                 game_start()
-            for enemy in range(len(enemy_pos)):
-                if player_pos == enemy_pos[enemy]:
-                    in_combat = True
-                    break
             enemy_movement()
         else:
             text_3 = tk.Label(t_r_frame, wraplength=200, text='You cannot move, you are in combat',
@@ -400,10 +510,14 @@ def game_start():
                 x += 1
                 player_pos[0] = x
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
-            for enemy in range(len(enemy_pos)):
-                if player_pos == enemy_pos[enemy]:
+            try:
+                for enemy in range(len(enemy_pos)):
+                    if player_pos == enemy_pos[enemy]:
+                        in_combat = True
+                        break
+            except KeyError:
+                if player_pos == enemy_pos[1]:
                     in_combat = True
-                    break
             enemy_movement()
         else:
             text_3 = tk.Label(t_r_frame, wraplength=200, text='You cannot move, you are in combat',
@@ -413,14 +527,19 @@ def game_start():
 
     b_r_frame = tk.Frame(dungeon_floor, width=200, height=200, border=10, background=input_frame_bg)
     b_r_frame.grid(row=1, column=1, padx=5, pady=5)
-    left_btn = (tk.Button(b_r_frame, text='<-', command=left)
-                .grid(row=2, column=0, padx=5))
-    up_btn = (tk.Button(b_r_frame, text='/\\', command=up)
-              .grid(row=1, column=1, padx=5))
-    down_btn = (tk.Button(b_r_frame, text='\/', command=down)
-                .grid(row=3, column=1, padx=5))
-    right_btn = (tk.Button(b_r_frame, text='->', command=right)
-                 .grid(row=2, column=2, padx=5))
+
+    left_btn = tk.Button(b_r_frame, text='<-', command=left)
+    left_btn.grid(row=2, column=0, padx=5)
+
+    up_btn = tk.Button(b_r_frame, text='/\\', command=up)
+    up_btn.grid(row=1, column=1, padx=5)
+
+    down_btn = tk.Button(b_r_frame, text='\/', command=down)
+    down_btn.grid(row=3, column=1, padx=5)
+
+    right_btn = tk.Button(b_r_frame, text='->', command=right)
+    right_btn.grid(row=2, column=2, padx=5)
+
     create_rooms()
 
 

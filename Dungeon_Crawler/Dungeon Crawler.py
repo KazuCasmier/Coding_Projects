@@ -31,7 +31,7 @@ enemy_hp = 20
         
     -In_Development-
     
-        > Combat system --COMPLETE BUT BUGGY--
+        > Combat system --COMPLETE--
             X Show the player is in combat
             X Run system
             X Show if the enemies are overlapping
@@ -41,8 +41,9 @@ enemy_hp = 20
         > Working health bar/actions on bottom left frame
             - Open button has no function yet
         
-        > Refreshing the floor after reaching the exit --COMPLETE--
-            X Works but should be implemented on further
+        > Refreshing the floor after reaching the exit
+            X Refreshes floor
+            - Adds to score with a treasure bonus (if collected)
         
         > Some sort of API implementation into the combat system
             - Looking for a suitable api
@@ -66,7 +67,7 @@ def game_start():
     dungeon_floor.title('Dungeon Crawler')
     dungeon_floor.geometry('820x720')
 
-    enemy_pos = {}
+    enemy_pos = []
     player_pos = [0]
 
     t_l_frame = tk.Frame(dungeon_floor, width=600, height=500, background=text_frame_bg)
@@ -92,10 +93,11 @@ def game_start():
             y = randint(0, 4)
             if x == 4 and y == 4:
                 labels[3][4].config(bg='Red')
-                enemy_pos.update({e: [x, y]})
+                enemy_pos.append([x, y])
             else:
                 labels[x][y].config(bg='Red')
-                enemy_pos.update({e: [x, y]})
+                enemy_pos.append([x, y])
+                print(enemy_pos)
         for g in range(1):
             x = randint(1, 4)
             y = randint(0, 4)
@@ -109,6 +111,7 @@ def game_start():
             player_pos.append(y)
 
         p_exit = labels[4][4].config(bg='Black')
+        print(enemy_pos[0], enemy_pos[1])
 
     """Logic for the enemy AI, will flip a coin and choose a direction to move based on the flip as well as the (x, y)
        position of the player and will also run a check to see if it occupies the same square as the player"""
@@ -118,90 +121,52 @@ def game_start():
         if in_combat:
             start_turn_order()
         else:
-            try:
-                for x in range(len(enemy_pos)):
-                    print(x)
-                    direction = randint(0, 1)
-                    labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
-                    # Direction 0 = x, 1 = y
-                    if direction == 0:
-                        if player_pos[0] >= enemy_pos[x][0]:
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
-                            enemy_pos[x][0] += 1
-                            try:
-                                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                            except IndexError:
-                                enemy_pos[x][0] -= 1
-                                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                        elif player_pos[0] < enemy_pos[x][0]:
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
-                            enemy_pos[x][0] -= 1
-                            try:
-                                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                            except IndexError:
-                                enemy_pos[x][0] += 1
-                                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                    elif direction == 1:
-                        if player_pos[1] >= enemy_pos[x][1]:
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
-                            enemy_pos[x][1] += 1
-                            try:
-                                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                            except IndexError:
-                                enemy_pos[x][1] -= 1
-                                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                        elif player_pos[1] < enemy_pos[x][1]:
-                            try:
-                                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                            except IndexError:
-                                enemy_pos[x][1] += 1
-                                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                for enemy in range(len(enemy_pos)):
-                    if player_pos == enemy_pos[enemy]:
-                        start_turn_order()
-            except KeyError:
+            # try:
+            for x in range(len(enemy_pos)):
+                print(x)
                 direction = randint(0, 1)
-                labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='White')
+                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
                 # Direction 0 = x, 1 = y
                 if direction == 0:
-                    if player_pos[0] >= enemy_pos[1][0]:
-                        labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='White')
-                        enemy_pos[1][0] += 1
+                    if player_pos[0] >= enemy_pos[x][0]:
+                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
+                        enemy_pos[x][0] += 1
                         try:
-                            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Red')
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
                         except IndexError:
-                            enemy_pos[1][0] -= 1
-                            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Red')
-                    elif player_pos[0] < enemy_pos[1][0]:
-                        labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='White')
-                        enemy_pos[1][0] -= 1
+                            enemy_pos[x][0] -= 1
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                    elif player_pos[0] < enemy_pos[x][0]:
+                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
+                        enemy_pos[x][0] -= 1
                         try:
-                            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Red')
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
                         except IndexError:
-                            enemy_pos[1][0] += 1
-                            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Red')
+                            enemy_pos[x][0] += 1
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
                 elif direction == 1:
-                    if player_pos[1] >= enemy_pos[1][1]:
-                        labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='White')
-                        enemy_pos[1][1] += 1
+                    if player_pos[1] >= enemy_pos[x][1]:
+                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
+                        enemy_pos[x][1] += 1
                         try:
-                            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Red')
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
                         except IndexError:
-                            enemy_pos[1][1] -= 1
-                            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Red')
-                    elif player_pos[1] < enemy_pos[1][1]:
+                            enemy_pos[x][1] -= 1
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+                    elif player_pos[1] < enemy_pos[x][1]:
                         try:
-                            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Red')
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
                         except IndexError:
-                            enemy_pos[1][1] += 1
-                            labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Red')
-            if player_pos == enemy_pos[1]:
-                start_turn_order()
+                            enemy_pos[x][1] += 1
+                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+            for enemy in range(len(enemy_pos)):
+                if player_pos == enemy_pos[enemy]:
+                    start_turn_order()
             try:
                 if enemy_pos[1] == enemy_pos[0]:
                     labels[enemy_pos[0][0]][enemy_pos[0][1]].config(bg='Dark Red')
                     labels[enemy_pos[1][0]][enemy_pos[1][1]].config(bg='Dark Red')
-            except KeyError:
+            except IndexError:
                 pass
 
     def quit_game():
@@ -271,11 +236,10 @@ def game_start():
                     print(enemy_pos)
                     for widget in t_r_frame.winfo_children():
                         widget.destroy()
-                    for enemy in range(len(enemy_pos)):
+                    for enemy in range(0, 2):
                         if player_pos == enemy_pos[enemy]:
-                            del enemy_pos[enemy]
-                    if enemy_pos[1] == 0:
-                        enemy_pos[1] = enemy_pos[0]
+                            enemy_pos.pop(enemy)
+                            break
                     print(enemy_pos)
 
                     in_combat = False
@@ -411,13 +375,12 @@ def game_start():
                 player_pos[1] = y
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
             try:
-                for enemy in range(len(enemy_pos)):
+                for enemy in range(0, 2):
                     if player_pos == enemy_pos[enemy]:
                         in_combat = True
                         break
-            except KeyError:
-                if player_pos == enemy_pos[1]:
-                    in_combat = True
+            except IndexError:
+                pass
             enemy_movement()
 
         else:
@@ -443,13 +406,12 @@ def game_start():
                 player_pos[1] = y
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
             try:
-                for enemy in range(len(enemy_pos)):
+                for enemy in range(0, 2):
                     if player_pos == enemy_pos[enemy]:
                         in_combat = True
                         break
-            except KeyError:
-                if player_pos == enemy_pos[1]:
-                    in_combat = True
+            except IndexError:
+                pass
             if player_pos == [4, 4]:
                 dungeon_floor.destroy()
                 game_start()
@@ -477,13 +439,12 @@ def game_start():
                 player_pos[0] = x
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
             try:
-                for enemy in range(len(enemy_pos)):
+                for enemy in range(0, 2):
                     if player_pos == enemy_pos[enemy]:
                         in_combat = True
                         break
-            except KeyError:
-                if player_pos == enemy_pos[1]:
-                    in_combat = True
+            except IndexError:
+                pass
             if player_pos == [4, 4]:
                 dungeon_floor.destroy()
                 game_start()
@@ -511,13 +472,12 @@ def game_start():
                 player_pos[0] = x
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
             try:
-                for enemy in range(len(enemy_pos)):
+                for enemy in range(0, 2):
                     if player_pos == enemy_pos[enemy]:
                         in_combat = True
                         break
-            except KeyError:
-                if player_pos == enemy_pos[1]:
-                    in_combat = True
+            except IndexError:
+                pass
             enemy_movement()
         else:
             text_3 = tk.Label(t_r_frame, wraplength=200, text='You cannot move, you are in combat',

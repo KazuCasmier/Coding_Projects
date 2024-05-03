@@ -16,6 +16,7 @@ in_combat = False
 player_turn = True
 player_hp = 99
 enemy_hp = 20
+score = 0
 
 """-Known_Bugs-
             
@@ -62,6 +63,7 @@ def destroy_window():
 
 def game_start():
     global player_hp
+    global score
     dungeon_floor = tk.Tk()
     dungeon_floor.configure(background=window_bg, cursor='dot')
     dungeon_floor.title('Dungeon Crawler')
@@ -221,6 +223,7 @@ def game_start():
         global player_turn
         global enemy_hp
         global in_combat
+        global score
 
         if not in_combat:
             text_non = tk.Label(t_r_frame, wraplength=200, text='\nYou are not in combat, you cannot attack.',
@@ -247,6 +250,8 @@ def game_start():
                                          font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                          fg="Light Gray")
                     text_beat.pack()
+                    score += 5
+                    update_score(score)
                 elif enemy_hp != 0:
                     text_non = tk.Label(t_r_frame, wraplength=200, text=f'\nYou hit the enemy for {player_dmg} they '
                                                                         f'have {enemy_hp} health remaining.',
@@ -335,6 +340,8 @@ def game_start():
             text_2.pack()
 
     """List of player actions. At the moment I don't really like this but it works for now"""
+    score_text = tk.Label(b_l_frame, text=f'Current score:{score}', font=font, bg=button_bg)
+    score_text.grid(column=1, row=1)
 
     hp_text = tk.Label(b_l_frame, text=f'HP: 99/{player_hp}', font=font, bg=button_bg)
     hp_text.grid(column=0, row=1)
@@ -344,14 +351,15 @@ def game_start():
         hp_slider.step(hp)
         hp_text.grid(column=0, row=1)
 
+    def update_score(player_score):
+        score_text = tk.Label(b_l_frame, text=f'Current score:{score}', font=font, bg=button_bg)
+        score_text.grid(column=1, row=1)
+
     attack_btn = tk.Button(b_l_frame, text='ATTACK', bg=button_bg, command=attack)
     attack_btn.grid(row=0, column=1, padx=25, pady=5)
 
     run_btn = tk.Button(b_l_frame, text='RUN', bg=button_bg, command=run)
-    run_btn.grid(row=1, column=1, padx=25, pady=5, ipadx=10)
-
-    open_btn = tk.Button(b_l_frame, text='OPEN', command='', bg=button_bg)
-    open_btn.grid(row=0, column=2, padx=15, pady=5)
+    run_btn.grid(row=0, column=2, padx=25, pady=5, ipadx=10)
 
     quit_btn = tk.Button(b_l_frame, text='QUIT', bg=button_bg, command=quit_game)
     quit_btn.grid(row=1, column=2, padx=15, pady=5)
@@ -391,6 +399,7 @@ def game_start():
 
     def down():
         global in_combat
+        global score
         if not in_combat:
             labels[player_pos[0]][player_pos[1]].config(bg='White')
             try:
@@ -414,6 +423,7 @@ def game_start():
                 pass
             if player_pos == [4, 4]:
                 dungeon_floor.destroy()
+                score += 2
                 game_start()
             enemy_movement()
         else:
@@ -424,6 +434,7 @@ def game_start():
 
     def right():
         global in_combat
+        global score
         if not in_combat:
             labels[player_pos[0]][player_pos[1]].config(bg='White')
             try:
@@ -447,6 +458,7 @@ def game_start():
                 pass
             if player_pos == [4, 4]:
                 dungeon_floor.destroy()
+                score += 2
                 game_start()
             enemy_movement()
         else:

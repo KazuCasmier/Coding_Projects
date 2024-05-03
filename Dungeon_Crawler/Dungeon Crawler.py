@@ -22,7 +22,7 @@ score = 0
             
         > Whenever an enemy occupies a space previously occupied by another enemy there is a chance they will disappear
           becoming white and will reappear after the player moves
-            - If the player purposefully runs into an enemy sometime the cell where the player is in combat will be white
+            -If the player purposefully runs into an enemy sometime the cell where the player is in combat will be white
             and the enemy will be one cell away
         
         > Clearing the top right info frame is not working right now, will fix soon.
@@ -38,13 +38,10 @@ score = 0
             X Show if the enemies are overlapping
             X Player/Enemy health
             X Player/Enemy Attack
-            
-        > Working health bar/actions on bottom left frame
-            - Open button has no function yet
         
         > Refreshing the floor after reaching the exit
             X Refreshes floor
-            - Adds to score with a treasure bonus (if collected)
+            X Adds to score with a treasure bonus (if collected)
         
         > Some sort of API implementation into the combat system
             - Looking for a suitable api
@@ -64,13 +61,16 @@ def destroy_window():
 def game_start():
     global player_hp
     global score
+
     dungeon_floor = tk.Tk()
     dungeon_floor.configure(background=window_bg, cursor='dot')
     dungeon_floor.title('Dungeon Crawler')
-    dungeon_floor.geometry('820x720')
+    dungeon_floor.geometry('860x720')
 
+    in_combat = False
     enemy_pos = []
     player_pos = [0]
+    coin_pos = []
 
     t_l_frame = tk.Frame(dungeon_floor, width=600, height=500, background=text_frame_bg)
     t_l_frame.grid(row=0, column=0, padx=5, pady=5)
@@ -104,15 +104,17 @@ def game_start():
             x = randint(1, 4)
             y = randint(0, 4)
             if x == 4 and y == 4:
-                pass
+                labels[4][3].config(bg='Gold')
+                coin_pos.append([4, 3])
             else:
-                chest = labels[x][y].config(bg='Gold')
+                labels[x][y].config(bg='Gold')
+                coin_pos.append([x, y])
         for z in range(1):
             y = randint(0, 4)
             labels[0][y].config(bg='Blue')
             player_pos.append(y)
 
-        p_exit = labels[4][4].config(bg='Black')
+        labels[4][4].config(bg='Black')
         print(enemy_pos[0], enemy_pos[1])
 
     """Logic for the enemy AI, will flip a coin and choose a direction to move based on the flip as well as the (x, y)
@@ -120,10 +122,13 @@ def game_start():
 
     def enemy_movement():
         print(f'Before: {enemy_pos}')
+        try:
+            labels[coin_pos[0][0]][coin_pos[0][1]].config(bg='Gold')
+        except IndexError:
+            pass
         if in_combat:
             start_turn_order()
         else:
-            # try:
             for x in range(len(enemy_pos)):
                 print(x)
                 direction = randint(0, 1)
@@ -340,19 +345,19 @@ def game_start():
             text_2.pack()
 
     """List of player actions. At the moment I don't really like this but it works for now"""
-    score_text = tk.Label(b_l_frame, text=f'Current score:{score}', font=font, bg=button_bg)
+    score_text = tk.Label(b_l_frame, text=f'Score:{score}', font=font, bg=input_frame_bg, fg='White')
     score_text.grid(column=1, row=1)
 
-    hp_text = tk.Label(b_l_frame, text=f'HP: 99/{player_hp}', font=font, bg=button_bg)
+    hp_text = tk.Label(b_l_frame, text=f'HP: {player_hp}/99', font=font, bg=button_bg)
     hp_text.grid(column=0, row=1)
 
     def update_health(hp):
-        hp_text = tk.Label(b_l_frame, text=f'HP: 99/{hp}', font=font, bg=button_bg)
+        hp_text = tk.Label(b_l_frame, text=f'HP: {hp}/99', font=font, bg=button_bg)
         hp_slider.step(hp)
         hp_text.grid(column=0, row=1)
 
     def update_score(player_score):
-        score_text = tk.Label(b_l_frame, text=f'Current score:{score}', font=font, bg=button_bg)
+        score_text = tk.Label(b_l_frame, text=f'Score:{score}', font=font, bg=input_frame_bg, fg='White')
         score_text.grid(column=1, row=1)
 
     attack_btn = tk.Button(b_l_frame, text='ATTACK', bg=button_bg, command=attack)
@@ -363,6 +368,17 @@ def game_start():
 
     quit_btn = tk.Button(b_l_frame, text='QUIT', bg=button_bg, command=quit_game)
     quit_btn.grid(row=1, column=2, padx=15, pady=5)
+
+    def check_coin():
+        global score
+        try:
+            if player_pos == coin_pos[0]:
+                score += 2
+                labels[coin_pos[0][0]][coin_pos[0][1]].config(bg='Blue')
+                coin_pos.pop()
+                update_score(score)
+        except IndexError:
+            pass
 
     """These methods are the movement actions for the Player"""
 
@@ -389,6 +405,7 @@ def game_start():
                         break
             except IndexError:
                 pass
+            check_coin()
             enemy_movement()
 
         else:
@@ -425,6 +442,7 @@ def game_start():
                 dungeon_floor.destroy()
                 score += 2
                 game_start()
+            check_coin()
             enemy_movement()
         else:
             text_3 = tk.Label(t_r_frame, wraplength=200, text='You cannot move, you are in combat',
@@ -460,6 +478,7 @@ def game_start():
                 dungeon_floor.destroy()
                 score += 2
                 game_start()
+            check_coin()
             enemy_movement()
         else:
             text_3 = tk.Label(t_r_frame, wraplength=200, text='You cannot move, you are in combat',
@@ -490,6 +509,7 @@ def game_start():
                         break
             except IndexError:
                 pass
+            check_coin()
             enemy_movement()
         else:
             text_3 = tk.Label(t_r_frame, wraplength=200, text='You cannot move, you are in combat',
@@ -532,7 +552,8 @@ def main_menu():
     text = tk.Label(window, wraplength=700, text="Use the on screen arrow keys to move."
                                                  "\n\n -Your goal is the black square in the bottom right"
                                                  "\n\n -There will be one \"chest\" that also randomly spawns"
-                                                 "\n\n -The red squares are enemies, run or fight do with them as you please.",
+                                                 "\n\n -The red squares are enemies, run or fight do with them as you "
+                                                 "please.",
                     font=(font, 15, "bold"), pady=20, bg=input_frame_bg,
                     fg="Light Gray")
 

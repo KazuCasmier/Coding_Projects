@@ -301,6 +301,7 @@ def game_start():
         global player_hp
         global player_turn
         global in_combat
+        global score
 
         if not player_turn:
             text_turn = tk.Label(t_r_frame, wraplength=200,
@@ -319,6 +320,7 @@ def game_start():
                                     font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                     fg="Light Gray")
                 if player_hp <= 0:
+                    score = 0
                     main_menu()
                     dungeon_floor.destroy()
 

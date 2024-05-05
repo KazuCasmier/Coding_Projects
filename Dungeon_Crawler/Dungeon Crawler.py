@@ -1,9 +1,11 @@
 import tkinter as tk
 import tkinter.ttk as ttk
-import collections
-import urllib
 import webbrowser
+from PIL import Image
+import json
+import urllib.request
 from random import randint
+import requests
 
 # Palett for the program
 window_bg = '#2A2D43'
@@ -11,6 +13,10 @@ input_frame_bg = '#414361'
 text_frame_bg = '#7F2CCB'
 button_bg = '#B880F7'
 font = 'Arial'
+
+a_url = "https://api.thecatapi.com/v1/images/search"
+api_key = 'live_ehTh1jGqE3KtAPJPAkEoxXZZQ7E1IixoCJTnaFUQm3WkaQDEufJWx2CaJzkH136k'
+query_params = {'x-api-key': api_key, 'limit': 1}
 
 in_combat = False
 player_turn = True
@@ -28,7 +34,7 @@ score = 0
         > Clearing the top right info frame is not working right now, will fix soon.
             - works but is ugly
         
-        > HP slider is accepting enemy_hp and updating the slider with its value
+        > HP slider is accepting enemy_hp and updating the slider with enemy & player values
         
     -In_Development-
     
@@ -54,6 +60,8 @@ def settings():
 
 
 def destroy_window():
+    global in_combat
+    in_combat = False
     window.destroy()
     game_start()
 
@@ -230,6 +238,7 @@ def game_start():
         global in_combat
         global score
 
+        enemy_img = ''
         if not in_combat:
             text_non = tk.Label(t_r_frame, wraplength=200, text='\nYou are not in combat, you cannot attack.',
                                 font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
@@ -255,6 +264,14 @@ def game_start():
                                          font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                          fg="Light Gray")
                     text_beat.pack()
+                    response = requests.request('GET', url=a_url, params=query_params)
+                    response = response.json()
+                    print(response)
+                    enemy_img = response[0]['url']
+                    print(enemy_img)
+                    # urllib.request.urlretrieve(enemy_img, 'test.png')
+
+                    webbrowser.open(enemy_img)
                     score += 5
                     update_score(score)
                 elif enemy_hp != 0:
@@ -295,6 +312,7 @@ def game_start():
             player_turn = False
         elif turn_order == 2:
             player_turn = True
+
         enemy_combat()
 
     def enemy_combat():

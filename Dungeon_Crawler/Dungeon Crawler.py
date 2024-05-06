@@ -246,6 +246,8 @@ def game_start():
         global enemy_hp
         global in_combat
         global score
+        for widget in t_r_frame.winfo_children():
+            widget.destroy()
 
         if not in_combat:
             text_non = tk.Label(t_r_frame, wraplength=200, text='\nYou are not in combat, you cannot attack.',

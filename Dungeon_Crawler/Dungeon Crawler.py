@@ -1,9 +1,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 import webbrowser
-from PIL import Image
-import json
-import urllib.request
 from random import randint
 import requests
 
@@ -50,16 +47,19 @@ score = 0
             X Adds to score with a treasure bonus (if collected)
         
         > Some sort of API implementation into the combat system
-            - Looking for a suitable api
+            X Looking for a suitable api
+                - Originally wanted some sort of AI art but all of it costs money :(
     
 """
 
 
 def settings():
+    """A little "easter egg" I guess..."""
     return webbrowser.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
 
 
 def destroy_window():
+    """Mainly used for refreshing the floor after the player reaches [4, 4]"""
     global in_combat
     in_combat = False
     window.destroy()
@@ -67,6 +67,7 @@ def destroy_window():
 
 
 def game_start():
+    """Main game window with alot of functions nested inside"""
     global player_hp
     global score
 
@@ -84,7 +85,8 @@ def game_start():
     t_l_frame.grid(row=0, column=0, padx=5, pady=5)
 
     """Creates the floor grid using a for loop and list comprehension
-  - Nabbed some of this code from Chat GPT because I was pulling my hair out trying to make a modular grid"""
+        - Nabbed some of this code from Chat GPT because I was pulling my hair out trying to make a modular grid
+    """
     labels = [[x for x in range(5)] for _ in range(5)]
 
     for i in range(5):
@@ -94,7 +96,7 @@ def game_start():
             label.grid(column=j, row=i, )
             labels[j][i] = label
 
-    """This method randomly generates TWO enemies, ONE treasure, and also handles spawning the Player
+    """This method randomly generates TWO enemies, ONE coin, and also handles spawning the Player
   The first column is dedicated specifically to the player spawn zone and cell (4, 4) is strictly the exit"""
 
     def create_rooms():
@@ -125,11 +127,9 @@ def game_start():
         labels[4][4].config(bg='Black')
         print(enemy_pos[0], enemy_pos[1])
 
-    """Logic for the enemy AI, will flip a coin and choose a direction to move based on the flip as well as the (x, y)
-       position of the player and will also run a check to see if it occupies the same square as the player"""
-
     def enemy_movement():
-        print(f'Before: {enemy_pos}')
+        """Logic for the enemy AI, will flip a coin and choose a direction to move based on the flip as well as the (x, y)
+            position of the player and will also run a check to see if it occupies the same square as the player"""
         try:
             labels[coin_pos[0][0]][coin_pos[0][1]].config(bg='Gold')
         except IndexError:
@@ -138,7 +138,6 @@ def game_start():
             start_turn_order()
         else:
             for x in range(len(enemy_pos)):
-                print(x)
                 direction = randint(0, 1)
                 labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
                 # Direction 0 = x, 1 = y
@@ -185,6 +184,7 @@ def game_start():
                 pass
 
     def quit_game():
+        """Quits the game from the dungeon scene"""
         quit()
 
     """This frame will display the instructions, damage values, and whether or not you are in combat or not"""
@@ -192,17 +192,19 @@ def game_start():
     t_r_frame.grid(row=0, column=1, padx=5, pady=5, ipadx=5)
     t_r_frame.propagate(False)
 
-    """The combat method... more later"""
-
+    """This frame is for player interaction with the game"""
     b_l_frame = tk.Frame(dungeon_floor, width=600, height=200, border=10, background=input_frame_bg)
     b_l_frame.grid(row=1, column=0, padx=5, pady=5)
 
-    # HEALTH SLIDER!!!
+    """HEALTH SLIDER - still broken unfortunately"""
     hp_slider = ttk.Progressbar(b_l_frame, orient=tk.HORIZONTAL, length=400)
     hp_slider.grid(column=0, row=0, rowspan=1, ipady=5)
     hp_slider.step(player_hp)
 
     def run():
+        """This function will check if you are in combat and if you are it will roll a 1/3 chance for you to escape the
+            battle, on success combat will become False and the player can move again and on a fail the enemy will have
+            its turn"""
         global player_turn
         global in_combat
         count = 0
@@ -233,12 +235,13 @@ def game_start():
         player_turn = False
 
     def attack():
+        """The attack button triggers this function and will roll a 1/6 random int on a roll higher than a 3 the player
+         will attack for 7-15 damage, on miss the combat will flip to the enemies turn"""
         global player_turn
         global enemy_hp
         global in_combat
         global score
 
-        enemy_img = ''
         if not in_combat:
             text_non = tk.Label(t_r_frame, wraplength=200, text='\nYou are not in combat, you cannot attack.',
                                 font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
@@ -264,14 +267,7 @@ def game_start():
                                          font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                          fg="Light Gray")
                     text_beat.pack()
-                    response = requests.request('GET', url=a_url, params=query_params)
-                    response = response.json()
-                    print(response)
-                    enemy_img = response[0]['url']
-                    print(enemy_img)
-                    # urllib.request.urlretrieve(enemy_img, 'test.png')
 
-                    webbrowser.open(enemy_img)
                     score += 5
                     update_score(score)
                 elif enemy_hp != 0:
@@ -292,6 +288,9 @@ def game_start():
             enemy_combat()
 
     def start_turn_order():
+        """Whenever combat is initiated this function will run, setting the enemy health to 20 and flipping a coin to
+        see which side will make the first move. This function also turns the player & enemy teal to show where the
+        player is"""
         global player_turn
         global enemy_hp
         global in_combat
@@ -316,6 +315,9 @@ def game_start():
         enemy_combat()
 
     def enemy_combat():
+        """Works very similar to the combat function but a hit will occur on a 5 or higher. This function is also
+        responsible for checking if the player is 'dead' or not, if they are you will be sent back to the title screen
+        """
         global player_hp
         global player_turn
         global in_combat
@@ -364,7 +366,7 @@ def game_start():
                               fg="Light Gray")
             text_2.pack()
 
-    """List of player actions. At the moment I don't really like this but it works for now"""
+    """These labels are responsible for relaying health and score to the player"""
     score_text = tk.Label(b_l_frame, text=f'Score:{score}', font=font, bg=input_frame_bg, fg='White')
     score_text.grid(column=1, row=1)
 
@@ -372,14 +374,17 @@ def game_start():
     hp_text.grid(column=0, row=1)
 
     def update_health(hp):
+        """Updates the health label"""
         hp_text = tk.Label(b_l_frame, text=f'HP: {hp}/99', font=font, bg=button_bg)
         hp_slider.step(hp)
         hp_text.grid(column=0, row=1)
 
     def update_score(player_score):
-        score_text = tk.Label(b_l_frame, text=f'Score:{score}', font=font, bg=input_frame_bg, fg='White')
+        """Updates the player score label"""
+        score_text = tk.Label(b_l_frame, text=f'Score:{player_score}', font=font, bg=input_frame_bg, fg='White')
         score_text.grid(column=1, row=1)
 
+    """The buttons are the actions the user can make during their time in the dungeon scene"""
     attack_btn = tk.Button(b_l_frame, text='ATTACK', bg=button_bg, command=attack)
     attack_btn.grid(row=0, column=1, padx=25, pady=5)
 
@@ -390,6 +395,8 @@ def game_start():
     quit_btn.grid(row=1, column=2, padx=15, pady=5)
 
     def check_coin():
+        """This function poorly solves an issue where and enemy would make coins disappear if the ever went on its
+        cell"""
         global score
         try:
             if player_pos == coin_pos[0]:
@@ -400,7 +407,8 @@ def game_start():
         except IndexError:
             pass
 
-    """These methods are the movement actions for the Player"""
+    """These methods are the movement actions for the Player. Down and Right are special however because those contain
+    logic for if the player escapes the floor, they also take care of the API calling"""
 
     def up():
         global in_combat
@@ -460,6 +468,14 @@ def game_start():
                 pass
             if player_pos == [4, 4]:
                 dungeon_floor.destroy()
+                response = requests.request('GET', url=a_url, params=query_params)
+                response = response.json()
+                print(response)
+                enemy_img = response[0]['url']
+                print(enemy_img)
+                # urllib.request.urlretrieve(enemy_img, 'test.png')
+
+                webbrowser.open(enemy_img)
                 score += 2
                 game_start()
             check_coin()
@@ -496,6 +512,14 @@ def game_start():
                 pass
             if player_pos == [4, 4]:
                 dungeon_floor.destroy()
+                response = requests.request('GET', url=a_url, params=query_params)
+                response = response.json()
+                print(response)
+                enemy_img = response[0]['url']
+                print(enemy_img)
+                # urllib.request.urlretrieve(enemy_img, 'test.png')
+
+                webbrowser.open(enemy_img)
                 score += 2
                 game_start()
             check_coin()
@@ -537,6 +561,7 @@ def game_start():
                               fg="Light Gray")
             text_3.pack()
 
+    """this frame contains movement, and the buttons below are for player movement"""
     b_r_frame = tk.Frame(dungeon_floor, width=200, height=200, border=10, background=input_frame_bg)
     b_r_frame.grid(row=1, column=1, padx=5, pady=5)
 

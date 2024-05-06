@@ -35,6 +35,9 @@ score = 0
         
         > Score is a bit buggy at times
         
+        > Tried importing the cat pictures into the window but kept running into a 403 error
+            - not sure why it wasn't authenticating I'll figure it out later
+        
     -In_Development-
     
         > Combat system --COMPLETE--
@@ -475,7 +478,6 @@ def game_start():
                 print(response)
                 enemy_img = response[0]['url']
                 print(enemy_img)
-                # urllib.request.urlretrieve(enemy_img, 'test.png')
 
                 webbrowser.open(enemy_img)
                 score += 2
@@ -519,7 +521,6 @@ def game_start():
                 print(response)
                 enemy_img = response[0]['url']
                 print(enemy_img)
-                # urllib.request.urlretrieve(enemy_img, 'test.png')
 
                 webbrowser.open(enemy_img)
                 score += 2

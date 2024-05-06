@@ -33,6 +33,8 @@ score = 0
         
         > HP slider is accepting enemy_hp and updating the slider with enemy & player values
         
+        > Score is a bit buggy at times
+        
     -In_Development-
     
         > Combat system --COMPLETE--
@@ -42,11 +44,11 @@ score = 0
             X Player/Enemy health
             X Player/Enemy Attack
         
-        > Refreshing the floor after reaching the exit
+        > Refreshing the floor after reaching the exit -COMPLETE-
             X Refreshes floor
             X Adds to score with a treasure bonus (if collected)
         
-        > Some sort of API implementation into the combat system
+        > Some sort of API implementation into the combat system -SEMI COMPLETE-
             X Looking for a suitable api
                 - Originally wanted some sort of AI art but all of it costs money :(
     

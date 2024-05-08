@@ -14,6 +14,10 @@ class Player:
     def get_pos(self) -> list:
         return self.position
 
+    def reset_pos(self):
+        rand_y = randint(1, 4)
+        self.position = [0, rand_y]
+
     def movement(self, direction) -> list:
 
         if direction == 'up':
@@ -45,6 +49,16 @@ class Player:
                 self.player_turn = True
 
             return self.player_turn
+
+    def attack(self, enemy_hp):
+        if self.in_combat:
+            hit_chance = randint(1, 6)
+            if hit_chance > 3:
+                player_dmg = randint(7, 15)
+                enemy_hp -= player_dmg
+                return enemy_hp, player_dmg
+            elif hit_chance <= 3:
+                return enemy_hp, 'miss'
 
     def run(self):
         if not self.in_combat:

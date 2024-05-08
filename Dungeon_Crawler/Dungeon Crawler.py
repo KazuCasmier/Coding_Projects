@@ -29,9 +29,8 @@ player = Player(99, [0, rand_y])
             -If the player purposefully runs into an enemy sometime the cell where the player is in combat will be white
             and the enemy will be one cell away
 
-        > Clearing the top right info frame is not working right now, will fix soon.
-            - works but is ugly
-
+        > Combat is a bit buggy again :(
+        
         > HP slider is accepting enemy_hp and updating the slider with enemy & player values
 
         > Score is a bit buggy at times
@@ -243,44 +242,36 @@ def game_start():
                                 fg="Light Gray")
             text_non.pack()
         elif player.in_combat:
-            hit_chance = randint(1, 6)
-            if hit_chance > 3:
-                player_dmg = randint(7, 15)
-                enemy_hp -= player_dmg
-                if enemy_hp <= 0:
-                    print(enemy_pos)
-                    for widget in t_r_frame.winfo_children():
-                        widget.destroy()
-                    for enemy in range(0, 2):
-                        if player_pos == enemy_pos[enemy]:
-                            enemy_pos.pop(enemy)
-                            break
-                    print(enemy_pos)
-
-                    text_beat = tk.Label(t_r_frame, wraplength=200, text='\nYou beat the enemy! you are out of combat.',
-                                         font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
-                                         fg="Light Gray")
-                    text_beat.pack()
-
-                    player.in_combat = False
-                    score += 5
-                    update_score(score)
-                elif enemy_hp != 0:
-                    text_non = tk.Label(t_r_frame, wraplength=200, text=f'\nYou hit the enemy for {player_dmg} they '
-                                                                        f'have {enemy_hp} health remaining.',
-                                        font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
-                                        fg="Light Gray")
-                    text_non.pack()
-            else:
-                for widget in t_r_frame.winfo_children():
-                    widget.destroy()
+            att = player.attack(enemy_hp)
+            enemy_hp = att[0]
+            if att[1] == 'miss':
                 text_miss = tk.Label(t_r_frame, wraplength=200, text=f'\nYou missed the enemy, it is their turn.',
                                      font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                      fg="Light Gray")
                 text_miss.pack()
+                player.player_turn = False
+                enemy_combat(player.player_turn)
 
-            player.player_turn = False
-            enemy_combat(player.player_turn)
+            elif att[1] != 'miss':
+                if enemy_hp <= 0:
+                    for enemy in range(0, 2):
+                        if player_pos == enemy_pos[enemy]:
+                            enemy_pos.pop(enemy)
+                            break
+                    text_beat = tk.Label(t_r_frame, wraplength=200, text='\nYou beat the enemy! you are out of combat.',
+                                         font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                                         fg="Light Gray")
+                    text_beat.pack()
+                    player.in_combat = False
+                    score += 5
+                    update_score(score)
+                elif enemy_hp != 0:
+                    text_non = tk.Label(t_r_frame, wraplength=200, text=f'\nYou hit the enemy for {att[1]} they '
+                                                                        f'have {enemy_hp} health remaining.',
+                                        font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
+                                        fg="Light Gray")
+                    text_non.pack()
+
 
     def start_turn_order():
         """Whenever combat is initiated this function will run, setting the enemy health to 20 and flipping a coin to
@@ -442,6 +433,7 @@ def game_start():
             except IndexError:
                 pass
             if player_pos == [4, 4]:
+                player.reset_pos()
                 dungeon_floor.destroy()
                 response = requests.request('GET', url=a_url, params=query_params)
                 response = response.json()
@@ -480,6 +472,7 @@ def game_start():
             except IndexError:
                 pass
             if player_pos == [4, 4]:
+                player.reset_pos()
                 dungeon_floor.destroy()
                 response = requests.request('GET', url=a_url, params=query_params)
                 response = response.json()

@@ -234,6 +234,8 @@ def game_start():
          will attack for 7-15 damage, on miss the combat will flip to the enemies turn"""
         global enemy_hp
         global score
+        for widget in t_r_frame.winfo_children():
+            widget.destroy()
 
         if not player.in_combat:
             text_non = tk.Label(t_r_frame, wraplength=200, text='\nYou are not in combat, you cannot attack.',

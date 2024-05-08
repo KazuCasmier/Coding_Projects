@@ -3,6 +3,7 @@ import tkinter.ttk as ttk
 import webbrowser
 from random import randint
 import requests
+from Player import Player
 
 # Palett for the program
 window_bg = '#2A2D43'
@@ -16,45 +17,45 @@ api_key = 'live_ehTh1jGqE3KtAPJPAkEoxXZZQ7E1IixoCJTnaFUQm3WkaQDEufJWx2CaJzkH136k
 query_params = {'x-api-key': api_key, 'limit': 1}
 
 in_combat = False
-player_turn = True
-player_hp = 99
 enemy_hp = 20
 score = 0
 
+rand_y = randint(0, 4)
+player = Player(99, [0, rand_y])
 """-Known_Bugs-
-            
+
         > Whenever an enemy occupies a space previously occupied by another enemy there is a chance they will disappear
           becoming white and will reappear after the player moves
             -If the player purposefully runs into an enemy sometime the cell where the player is in combat will be white
             and the enemy will be one cell away
-        
+
         > Clearing the top right info frame is not working right now, will fix soon.
             - works but is ugly
-        
+
         > HP slider is accepting enemy_hp and updating the slider with enemy & player values
-        
+
         > Score is a bit buggy at times
-        
+
         > Tried importing the cat pictures into the window but kept running into a 403 error
             - not sure why it wasn't authenticating I'll figure it out later
-        
+
     -In_Development-
-    
+
         > Combat system --COMPLETE--
             X Show the player is in combat
             X Run system
             X Show if the enemies are overlapping
             X Player/Enemy health
             X Player/Enemy Attack
-        
+
         > Refreshing the floor after reaching the exit -COMPLETE-
             X Refreshes floor
             X Adds to score with a treasure bonus (if collected)
-        
+
         > Some sort of API implementation into the combat system -SEMI COMPLETE-
             X Looking for a suitable api
                 - Originally wanted some sort of AI art but all of it costs money :(
-    
+
 """
 
 
@@ -65,15 +66,13 @@ def settings():
 
 def destroy_window():
     """Mainly used for refreshing the floor after the player reaches [4, 4]"""
-    global in_combat
-    in_combat = False
+    player.in_combat = False
     window.destroy()
     game_start()
 
 
 def game_start():
     """Main game window with alot of functions nested inside"""
-    global player_hp
     global score
 
     dungeon_floor = tk.Tk()
@@ -81,10 +80,9 @@ def game_start():
     dungeon_floor.title('Dungeon Crawler')
     dungeon_floor.geometry('860x720')
 
-    in_combat = False
-    enemy_pos = []
-    player_pos = [0]
+    player_pos = Player.get_pos(player)
     coin_pos = []
+    enemy_pos = []
 
     t_l_frame = tk.Frame(dungeon_floor, width=600, height=500, background=text_frame_bg)
     t_l_frame.grid(row=0, column=0, padx=5, pady=5)
@@ -125,9 +123,7 @@ def game_start():
                 labels[x][y].config(bg='Gold')
                 coin_pos.append([x, y])
         for z in range(1):
-            y = randint(0, 4)
-            labels[0][y].config(bg='Blue')
-            player_pos.append(y)
+            labels[player_pos[0]][player_pos[1]].config(bg='Blue')
 
         labels[4][4].config(bg='Black')
         print(enemy_pos[0], enemy_pos[1])
@@ -204,55 +200,47 @@ def game_start():
     """HEALTH SLIDER - still broken unfortunately"""
     hp_slider = ttk.Progressbar(b_l_frame, orient=tk.HORIZONTAL, length=400)
     hp_slider.grid(column=0, row=0, rowspan=1, ipady=5)
-    hp_slider.step(player_hp)
+    hp_slider.step(player.health)
 
     def run():
         """This function will check if you are in combat and if you are it will roll a 1/3 chance for you to escape the
             battle, on success combat will become False and the player can move again and on a fail the enemy will have
             its turn"""
-        global player_turn
-        global in_combat
-        count = 0
-        count += 1
-        run_chance = randint(1, 3)
-        print(run_chance)
-        if not in_combat:
-            text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou are not in combat, you cannot run.',
+        p_run = player.run()
+        if p_run[0] == 0:
+            text_2 = tk.Label(t_r_frame, wraplength=200, text=p_run[1],
                               font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                               fg="Light Gray")
             text_2.pack()
-        elif in_combat:
-            if run_chance == 1:
+        else:
+            if p_run[0] == 1:
                 for widget in t_r_frame.winfo_children():
                     widget.destroy()
-                text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou are out of combat!!',
+                text_2 = tk.Label(t_r_frame, wraplength=200, text=p_run[1],
                                   font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                   fg="Light Gray")
                 text_2.pack()
-                in_combat = False
-            else:
-                text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou fail to run and are still in combat!!',
+            elif p_run[0] == 2:
+                text_2 = tk.Label(t_r_frame, wraplength=200, text=p_run[1],
                                   font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                   fg="Light Gray")
                 text_2.pack()
-                player_turn = False
-                enemy_combat()
-        player_turn = False
+                player.player_turn = False
+                enemy_combat(player.player_turn)
+        player.player_turn = False
 
     def attack():
         """The attack button triggers this function and will roll a 1/6 random int on a roll higher than a 3 the player
          will attack for 7-15 damage, on miss the combat will flip to the enemies turn"""
-        global player_turn
         global enemy_hp
-        global in_combat
         global score
 
-        if not in_combat:
+        if not player.in_combat:
             text_non = tk.Label(t_r_frame, wraplength=200, text='\nYou are not in combat, you cannot attack.',
                                 font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                 fg="Light Gray")
             text_non.pack()
-        elif in_combat:
+        elif player.in_combat:
             hit_chance = randint(1, 6)
             if hit_chance > 3:
                 player_dmg = randint(7, 15)
@@ -267,12 +255,12 @@ def game_start():
                             break
                     print(enemy_pos)
 
-                    in_combat = False
                     text_beat = tk.Label(t_r_frame, wraplength=200, text='\nYou beat the enemy! you are out of combat.',
                                          font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                          fg="Light Gray")
                     text_beat.pack()
 
+                    player.in_combat = False
                     score += 5
                     update_score(score)
                 elif enemy_hp != 0:
@@ -289,45 +277,32 @@ def game_start():
                                      fg="Light Gray")
                 text_miss.pack()
 
-            player_turn = False
-            enemy_combat()
+            player.player_turn = False
+            enemy_combat(player.player_turn)
 
     def start_turn_order():
         """Whenever combat is initiated this function will run, setting the enemy health to 20 and flipping a coin to
         see which side will make the first move. This function also turns the player & enemy teal to show where the
         player is"""
-        global player_turn
         global enemy_hp
-        global in_combat
         for widget in t_r_frame.winfo_children():
             widget.destroy()
 
         enemy_hp = 20
-        in_combat = True
-        turn_order = randint(1, 2)
 
         labels[player_pos[0]][player_pos[1]].config(bg='teal')
         text_2 = tk.Label(t_r_frame, wraplength=200, text='\nYou are in combat!!',
                           font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                           fg="Light Gray")
         text_2.pack()
+        player.in_combat = True
+        enemy_combat(player.start_combat())
 
-        if turn_order == 1:
-            player_turn = False
-        elif turn_order == 2:
-            player_turn = True
-
-        enemy_combat()
-
-    def enemy_combat():
+    def enemy_combat(player_turn):
         """Works very similar to the combat function but a hit will occur on a 5 or higher. This function is also
         responsible for checking if the player is 'dead' or not, if they are you will be sent back to the title screen
         """
-        global player_hp
-        global player_turn
-        global in_combat
         global score
-
         if not player_turn:
             text_turn = tk.Label(t_r_frame, wraplength=200,
                                  text=f'\n-Enemy Turn-',
@@ -338,20 +313,22 @@ def game_start():
             if hit_chance >= 5:
                 print("hit")
                 dmg = randint(7, 15)
-                player_hp -= dmg
+                player.health -= dmg
 
                 text_hit = tk.Label(t_r_frame, wraplength=200,
                                     text=f'\n-It is the enemies turn and they delt {dmg} damage.-',
                                     font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                     fg="Light Gray")
-                if player_hp <= 0:
+                if player.health <= 0:
                     score = 0
                     main_menu()
                     dungeon_floor.destroy()
 
                 text_hit.pack()
-                player_turn = True
-                update_health(player_hp)
+
+                player.player_turn = True
+
+                update_health(player.health)
                 text_2 = tk.Label(t_r_frame, wraplength=200, text='\n-It is now your turn.-',
                                   font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                   fg="Light Gray")
@@ -362,7 +339,7 @@ def game_start():
                                      font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                      fg="Light Gray")
                 text_miss.pack()
-                player_turn = True
+                player.player_turn = True
         elif player_turn:
             for widget in t_r_frame.winfo_children():
                 widget.destroy()
@@ -375,7 +352,7 @@ def game_start():
     score_text = tk.Label(b_l_frame, text=f'Score:{score}', font=font, bg=input_frame_bg, fg='White')
     score_text.grid(column=1, row=1)
 
-    hp_text = tk.Label(b_l_frame, text=f'HP: {player_hp}/99', font=font, bg=button_bg)
+    hp_text = tk.Label(b_l_frame, text=f'HP: {player.health}/99', font=font, bg=button_bg)
     hp_text.grid(column=0, row=1)
 
     def update_health(hp):
@@ -416,25 +393,21 @@ def game_start():
     logic for if the player escapes the floor, they also take care of the API calling"""
 
     def up():
-        global in_combat
-        if not in_combat:
+        if not player.in_combat:
+            print(player_pos)
             labels[player_pos[0]][player_pos[1]].config(bg='White')
             try:
-                y = player_pos[1]
-                y -= 1
-                player_pos[1] = y
-                if y < 0:
+                p_up = player.movement('up')
+                if p_up[1] < 0:
                     raise IndexError
-                labels[player_pos[0]][player_pos[1]].config(bg='Blue')
+                labels[p_up[0]][p_up[1]].config(bg='Blue')
             except IndexError:
-                y = player_pos[1]
-                y += 1
-                player_pos[1] = y
+                player.movement('down')
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
             try:
                 for enemy in range(0, 2):
                     if player_pos == enemy_pos[enemy]:
-                        in_combat = True
+                        player.in_combat = True
                         break
             except IndexError:
                 pass
@@ -448,26 +421,21 @@ def game_start():
             text_3.pack()
 
     def down():
-        global in_combat
         global score
-        if not in_combat:
+        if not player.in_combat:
             labels[player_pos[0]][player_pos[1]].config(bg='White')
             try:
-                y = player_pos[1]
-                y += 1
-                player_pos[1] = y
-                if y > 4:
+                p_up = player.movement('down')
+                if p_up[1] > 4:
                     raise IndexError
-                labels[player_pos[0]][player_pos[1]].config(bg='Blue')
+                labels[p_up[0]][p_up[1]].config(bg='Blue')
             except IndexError:
-                y = player_pos[1]
-                y -= 1
-                player_pos[1] = y
+                player.movement('up')
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
             try:
                 for enemy in range(0, 2):
                     if player_pos == enemy_pos[enemy]:
-                        in_combat = True
+                        player.in_combat = True
                         break
             except IndexError:
                 pass
@@ -491,26 +459,21 @@ def game_start():
             text_3.pack()
 
     def right():
-        global in_combat
         global score
-        if not in_combat:
+        if not player.in_combat:
             labels[player_pos[0]][player_pos[1]].config(bg='White')
             try:
-                x = player_pos[0]
-                x += 1
-                player_pos[0] = x
-                if x > 4:
+                p_up = player.movement('right')
+                if p_up[0] > 4:
                     raise IndexError
-                labels[player_pos[0]][player_pos[1]].config(bg='Blue')
-            except IndexError or player_pos[0] > 4:
-                x = player_pos[0]
-                x -= 1
-                player_pos[0] = x
+                labels[p_up[0]][p_up[1]].config(bg='Blue')
+            except IndexError:
+                player.movement('left')
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
             try:
                 for enemy in range(0, 2):
                     if player_pos == enemy_pos[enemy]:
-                        in_combat = True
+                        player.in_combat = True
                         break
             except IndexError:
                 pass
@@ -534,25 +497,20 @@ def game_start():
             text_3.pack()
 
     def left():
-        global in_combat
-        if not in_combat:
+        if not player.in_combat:
             labels[player_pos[0]][player_pos[1]].config(bg='White')
             try:
-                x = player_pos[0]
-                x -= 1
-                player_pos[0] = x
-                if x < 0:
+                p_up = player.movement('left')
+                if p_up[1] > 4:
                     raise IndexError
-                labels[player_pos[0]][player_pos[1]].config(bg='Blue')
-            except IndexError or player_pos[0] < 0:
-                x = player_pos[0]
-                x += 1
-                player_pos[0] = x
+                labels[p_up[0]][p_up[1]].config(bg='Blue')
+            except IndexError:
+                player.movement('right')
                 labels[player_pos[0]][player_pos[1]].config(bg='Blue')
             try:
                 for enemy in range(0, 2):
                     if player_pos == enemy_pos[enemy]:
-                        in_combat = True
+                        player.in_combat = True
                         break
             except IndexError:
                 pass

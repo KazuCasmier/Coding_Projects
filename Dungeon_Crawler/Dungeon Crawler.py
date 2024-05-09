@@ -4,6 +4,7 @@ import webbrowser
 from random import randint
 import requests
 from Player import Player
+from Enemy import Enemy
 
 # Palett for the program
 window_bg = '#2A2D43'
@@ -17,19 +18,19 @@ api_key = 'live_ehTh1jGqE3KtAPJPAkEoxXZZQ7E1IixoCJTnaFUQm3WkaQDEufJWx2CaJzkH136k
 query_params = {'x-api-key': api_key, 'limit': 1}
 
 in_combat = False
-enemy_hp = 20
 score = 0
 
 rand_y = randint(0, 4)
 player = Player(99, [0, rand_y])
+enemy_1 = Enemy(20)
+enemy_2 = Enemy(20)
+
 """-Known_Bugs-
 
         > Whenever an enemy occupies a space previously occupied by another enemy there is a chance they will disappear
           becoming white and will reappear after the player moves
             -If the player purposefully runs into an enemy sometime the cell where the player is in combat will be white
             and the enemy will be one cell away
-
-        > Combat is a bit buggy again :(
         
         > HP slider is accepting enemy_hp and updating the slider with enemy & player values
 
@@ -41,15 +42,8 @@ player = Player(99, [0, rand_y])
     -In_Development-
 
         > Combat system --COMPLETE--
-            X Show the player is in combat
-            X Run system
-            X Show if the enemies are overlapping
-            X Player/Enemy health
-            X Player/Enemy Attack
 
         > Refreshing the floor after reaching the exit -COMPLETE-
-            X Refreshes floor
-            X Adds to score with a treasure bonus (if collected)
 
         > Some sort of API implementation into the combat system -SEMI COMPLETE-
             X Looking for a suitable api
@@ -79,9 +73,9 @@ def game_start():
     dungeon_floor.title('Dungeon Crawler')
     dungeon_floor.geometry('860x720')
 
+    enemy_pos = [enemy_1.spawn(), enemy_2.spawn()]
     player_pos = Player.get_pos(player)
     coin_pos = []
-    enemy_pos = []
 
     t_l_frame = tk.Frame(dungeon_floor, width=600, height=500, background=text_frame_bg)
     t_l_frame.grid(row=0, column=0, padx=5, pady=5)
@@ -102,16 +96,11 @@ def game_start():
   The first column is dedicated specifically to the player spawn zone and cell (4, 4) is strictly the exit"""
 
     def create_rooms():
-        for e in range(2):
-            x = randint(1, 4)
-            y = randint(0, 4)
-            if x == 4 and y == 4:
-                labels[3][4].config(bg='Red')
-                enemy_pos.append([x, y])
-            else:
-                labels[x][y].config(bg='Red')
-                enemy_pos.append([x, y])
-                print(enemy_pos)
+        labels[player_pos[0]][player_pos[1]].config(bg='Blue')
+        labels[4][4].config(bg='Black')
+
+        for g in enemy_pos:
+            labels[g[0]][g[1]].config(bg='Red')
         for g in range(1):
             x = randint(1, 4)
             y = randint(0, 4)
@@ -121,10 +110,7 @@ def game_start():
             else:
                 labels[x][y].config(bg='Gold')
                 coin_pos.append([x, y])
-        for z in range(1):
-            labels[player_pos[0]][player_pos[1]].config(bg='Blue')
 
-        labels[4][4].config(bg='Black')
         print(enemy_pos[0], enemy_pos[1])
 
     def enemy_movement():
@@ -137,42 +123,23 @@ def game_start():
         if in_combat:
             start_turn_order()
         else:
-            for x in range(len(enemy_pos)):
-                direction = randint(0, 1)
-                labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
-                # Direction 0 = x, 1 = y
-                if direction == 0:
-                    if player_pos[0] >= enemy_pos[x][0]:
-                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
-                        enemy_pos[x][0] += 1
-                        try:
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                        except IndexError:
-                            enemy_pos[x][0] -= 1
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                    elif player_pos[0] < enemy_pos[x][0]:
-                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
-                        enemy_pos[x][0] -= 1
-                        try:
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                        except IndexError:
-                            enemy_pos[x][0] += 1
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                elif direction == 1:
-                    if player_pos[1] >= enemy_pos[x][1]:
-                        labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='White')
-                        enemy_pos[x][1] += 1
-                        try:
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                        except IndexError:
-                            enemy_pos[x][1] -= 1
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                    elif player_pos[1] < enemy_pos[x][1]:
-                        try:
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
-                        except IndexError:
-                            enemy_pos[x][1] += 1
-                            labels[enemy_pos[x][0]][enemy_pos[x][1]].config(bg='Red')
+            try:
+                e1_pos = enemy_1.get_position()
+                labels[e1_pos[0]][e1_pos[1]].config(bg='White')
+
+                e1_pos = enemy_1.movement(player_pos)
+                labels[e1_pos[0]][e1_pos[1]].config(bg='Red')
+            except IndexError:
+                pass
+
+            try:
+                e2_pos = enemy_2.get_position()
+                labels[e2_pos[0]][e2_pos[1]].config(bg='White')
+
+                e2_pos = enemy_2.movement(player_pos)
+                labels[e2_pos[0]][e2_pos[1]].config(bg='Red')
+            except IndexError:
+                pass
             for enemy in range(len(enemy_pos)):
                 if player_pos == enemy_pos[enemy]:
                     start_turn_order()
@@ -271,7 +238,6 @@ def game_start():
                                         font=(font, 10, "bold"), pady=20, bg=input_frame_bg,
                                         fg="Light Gray")
                     text_non.pack()
-
 
     def start_turn_order():
         """Whenever combat is initiated this function will run, setting the enemy health to 20 and flipping a coin to
@@ -496,7 +462,7 @@ def game_start():
             labels[player_pos[0]][player_pos[1]].config(bg='White')
             try:
                 p_up = player.movement('left')
-                if p_up[1] > 4:
+                if p_up[0] < 0:
                     raise IndexError
                 labels[p_up[0]][p_up[1]].config(bg='Blue')
             except IndexError:

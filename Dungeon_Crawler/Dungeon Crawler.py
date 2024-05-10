@@ -1,8 +1,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
-import webbrowser
 from random import randint
-import requests
 from Player import Player
 from Enemy import Enemy
 
@@ -12,10 +10,6 @@ input_frame_bg = '#414361'
 text_frame_bg = '#7F2CCB'
 button_bg = '#B880F7'
 font = 'Arial'
-
-a_url = "https://api.thecatapi.com/v1/images/search"
-api_key = 'live_ehTh1jGqE3KtAPJPAkEoxXZZQ7E1IixoCJTnaFUQm3WkaQDEufJWx2CaJzkH136k'
-query_params = {'x-api-key': api_key, 'limit': 1}
 
 in_combat = False
 score = 0
@@ -45,16 +39,12 @@ enemy_2 = Enemy(20)
 
         > Refreshing the floor after reaching the exit -COMPLETE-
 
-        > Some sort of API implementation into the combat system -SEMI COMPLETE-
-            X Looking for a suitable api
-                - Originally wanted some sort of AI art but all of it costs money :(
-
 """
 
 
 def settings():
     """A little "easter egg" I guess..."""
-    return webbrowser.open('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+    pass
 
 
 def destroy_window():
@@ -401,13 +391,7 @@ def game_start():
             if player_pos == [4, 4]:
                 player.reset_pos()
                 dungeon_floor.destroy()
-                response = requests.request('GET', url=a_url, params=query_params)
-                response = response.json()
-                print(response)
-                enemy_img = response[0]['url']
-                print(enemy_img)
 
-                webbrowser.open(enemy_img)
                 score += 2
                 game_start()
             check_coin()
@@ -440,13 +424,7 @@ def game_start():
             if player_pos == [4, 4]:
                 player.reset_pos()
                 dungeon_floor.destroy()
-                response = requests.request('GET', url=a_url, params=query_params)
-                response = response.json()
-                print(response)
-                enemy_img = response[0]['url']
-                print(enemy_img)
 
-                webbrowser.open(enemy_img)
                 score += 2
                 game_start()
             check_coin()
